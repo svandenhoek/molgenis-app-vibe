@@ -65,7 +65,7 @@ pipeline {
                 stage('Push to registries [ PR ]') {
                     steps {
                         container('maven') {
-                            dir('molgenis-app') {
+                            dir('molgenis-app-vibe') {
                                 script {
                                     sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                     sh "mvn -q -B rpm:rpm -Drpm.release.version=${env.PREVIEW_VERSION}"
@@ -104,7 +104,7 @@ pipeline {
                 stage('Push to registries [ master ]') {
                     steps {
                         container('maven') {
-                            dir('molgenis-app') {
+                            dir('molgenis-app-vibe') {
                                 script {
                                     sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                     sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
@@ -115,15 +115,6 @@ pipeline {
                                     sh "mvn deploy:deploy-file -DartifactId=molgenis -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_SNAPSHOTS} -Dfile=target/rpm/molgenis/RPMS/noarch/${env.RPM}"
                                 }
                             }
-                        }
-                    }
-                }
-                stage("Deploy to dev [ master ]") {
-                    steps {
-                        milestone(ordinal: 100, label: 'deploy to master.dev.molgenis.org')
-                        container('rancher') {
-                            sh "rancher context switch dev-molgenis"
-                            sh "rancher apps upgrade --set image.tag=${TAG} master ${CHART_VERSION}"
                         }
                     }
                 }
@@ -149,7 +140,7 @@ pipeline {
                             sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs -T4"
                             sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
-                            dir('molgenis-app') {
+                            dir('molgenis-app-vibe') {
                                 sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${BRANCH_NAME}-latest"
                                 sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
                             }
@@ -174,7 +165,7 @@ pipeline {
                                 env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
                             }
                             // deploy Docker image
-                            dir('molgenis-app') {
+                            dir('molgenis-app-vibe') {
                                 script {
                                     sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -Ddockerfile.warfile.version=${TAG}"
                                 }
@@ -185,7 +176,7 @@ pipeline {
                             // which implies that the next snapshot version is installed
                             // the artifact is built and the rpm plugin refers to the artifact build in the release:prepare goal
                             sh "mvn -q -B install -DskipTests -T4"
-                            dir('molgenis-app') {
+                            dir('molgenis-app-vibe') {
                                 script {
                                     sh "mvn -q -B rpm:rpm -Drpm.release.version=${TAG}"
                                     // make sure you have no linebreaks in RPM variable
@@ -193,18 +184,6 @@ pipeline {
                                     sh "mvn deploy:deploy-file -DartifactId=molgenis -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_SNAPSHOTS} -Dfile=target/rpm/molgenis/RPMS/noarch/${env.RPM}"
                                 }
                             }
-                        }
-                    }
-                }
-                stage('Deploy to test [ x.x ]') {
-                    steps {
-                        milestone(ordinal: 100, label: 'deploy to latest.test.molgenis.org')
-                        dir('/home/jenkins/.rancher') {
-                            unstash 'rancher-config'
-                        }
-                        container('rancher') {
-                            sh "rancher context switch test-molgenis"
-                            sh "rancher apps upgrade --set image.tag=${TAG} latest ${CHART_VERSION}"
                         }
                     }
                 }
@@ -233,53 +212,14 @@ pipeline {
                                 // Can not use DSL here because of bug in Jenkins
                                 // The build wants to create a tmp directory in the target/checkout/molgenis-app
                                 // This is not permitted
-                                sh "cd target/checkout/molgenis-app && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                                sh "cd target/checkout/molgenis-app && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=${BRANCH_NAME}-stable"
-                                sh "cd target/checkout/molgenis-app && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=stable"
+                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
+                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=${BRANCH_NAME}-stable"
+                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=stable"
                                 // Build RPM to push to registry
-                                sh "cd target/checkout/molgenis-app && mvn -q -B rpm:rpm -Drpm.release.version=${TAG}"
+                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B rpm:rpm -Drpm.release.version=${TAG}"
                                 // make sure you have no linebreaks in RPM variable
-                                env.RPM = sh(script: 'cd target/checkout/molgenis-app && ls -1 target/rpm/molgenis/RPMS/noarch', returnStdout: true).trim()
-                                sh "cd target/checkout/molgenis-app && mvn deploy:deploy-file -DartifactId=molgenis -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_RELEASES} -Dfile=target/rpm/molgenis/RPMS/noarch/${env.RPM}"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage('Steps [ feature ]') {
-            when {
-                expression { BRANCH_NAME ==~ /feature\/.*/ }
-            }
-            environment {
-                TAG = "$BRANCH_NAME-$BUILD_NUMBER".replaceAll(~/[^\w.-]/, '-').toLowerCase()
-            }
-            stages {
-                stage('Build [ feature ]') {
-                    steps {
-                        container('maven') {
-                            sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs"
-                            sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
-                            sh "mvn -q -B sonar:sonar -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.login=${SONAR_TOKEN} -Dsonar.ws.timeout=120"
-                        }
-                    }
-                    post {
-                        always {
-                            junit '**/target/surefire-reports/**.xml'
-                        }
-                    }
-                }
-                stage('Push to registries [ feature ]') {
-                    steps {
-                        container('maven') {
-                            dir('molgenis-app') {
-                                script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
-                                    sh "mvn -q -B rpm:rpm -Drpm.version=${TAG}"
-                                    // make sure you have no linebreaks in RPM variable
-                                    env.RPM = sh(script: 'ls -1 target/rpm/molgenis/RPMS/noarch', returnStdout: true).trim()
-                                    sh "mvn deploy:deploy-file -DartifactId=molgenis -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_SNAPSHOTS} -Dfile=target/rpm/molgenis/RPMS/noarch/${env.RPM}"
-                                }
+                                env.RPM = sh(script: 'cd target/checkout/molgenis-app-vibe && ls -1 target/rpm/molgenis/RPMS/noarch', returnStdout: true).trim()
+                                sh "cd target/checkout/molgenis-app-vibe && mvn deploy:deploy-file -DartifactId=molgenis -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_RELEASES} -Dfile=target/rpm/molgenis/RPMS/noarch/${env.RPM}"
                             }
                         }
                     }
