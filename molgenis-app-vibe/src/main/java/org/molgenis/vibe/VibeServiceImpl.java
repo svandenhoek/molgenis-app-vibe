@@ -64,8 +64,6 @@ class VibeServiceImpl implements VibeService {
     argsList.add("-v");
     argsList.add("-t");
     argsList.add(vibeDataPath.toString());
-    argsList.add("-s");
-    argsList.add("gda_max");
     argsList.add("-o");
     argsList.add(outputPath);
     phenotypes.forEach(
