@@ -133,7 +133,13 @@
     <dependency>
       <groupId>org.molgenis</groupId>
       <artifactId>vibe</artifactId>
-      <version>1.0.0</version>
+      <version>3.0.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>jcl-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.molgenis</groupId>
