@@ -64,6 +64,7 @@ class VibeServiceImpl implements VibeService {
     argsList.add("-v");
     argsList.add("-t");
     argsList.add(vibeDataPath.toString());
+    argsList.add("-u");
     argsList.add("-o");
     argsList.add(outputPath);
     phenotypes.forEach(
