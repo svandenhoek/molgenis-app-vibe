@@ -4,3 +4,4 @@ test-output/
 .classpath
 .project
 /target/
+/src/test/resources/app_data_root/
