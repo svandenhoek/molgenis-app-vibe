@@ -18,10 +18,14 @@ import org.molgenis.data.file.model.FileMetaFactory;
 import org.molgenis.data.file.model.FileMetaMetadata;
 import org.molgenis.jobs.Progress;
 import org.molgenis.util.AppDataRootProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 class VibeServiceImpl implements VibeService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(VibeServiceImpl.class);
+
   private final DataService dataService;
   private final FileStore fileStore;
   private final FileMetaFactory fileMetaFactory;
@@ -44,7 +48,9 @@ class VibeServiceImpl implements VibeService {
         dataService.add(FileMetaMetadata.FILE_META, fileMeta);
       }
     } finally {
-      tempOutputFile.delete();
+      if(!tempOutputFile.delete()) {
+        LOGGER.error("An error occurred while trying to delete: " + tempOutputFile.getName());
+      }
     }
     progress.increment(1);
     progress.status("Done.");
