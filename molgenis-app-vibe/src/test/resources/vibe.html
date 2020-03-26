@@ -58,8 +58,15 @@
             for (i = 1; i < lines.length; i++) {
               content += '<tr>'
               lines[i].split('\t').forEach((element, index) => {
-                if(index == 1) {
-                  content += '<td><div style="height:24px; overflow-y:scroll">' + element + '</div></td>';
+                if(index == 3) {
+                  content += '<td style="white-space: pre;">';
+                  element.split('|').forEach((diseaseInfo, diseaseInfoIndex) => {
+                    if(diseaseInfoIndex > 0) {
+                      content += '<br />';
+                    }
+                    content += diseaseInfo;
+                  });
+                  content += '</td>';
                 } else {
                   content += '<td>' + element + '</td>';
                 }
