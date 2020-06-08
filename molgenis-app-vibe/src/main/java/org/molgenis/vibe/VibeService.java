@@ -1,11 +1,12 @@
 package org.molgenis.vibe;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 import org.molgenis.data.file.model.FileMeta;
 import org.molgenis.jobs.Progress;
+import org.molgenis.vibe.core.formats.Phenotype;
 
 interface VibeService {
-  FileMeta executeVibe(List<String> phenotypes, String filename, Progress progress)
-      throws IOException;
+  FileMeta retrieveGeneDiseaseCollection(
+      Set<Phenotype> phenotypes, String filename, Progress progress) throws IOException;
 }
