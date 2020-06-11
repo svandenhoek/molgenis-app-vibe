@@ -64,6 +64,6 @@ public class VibeConfig {
   private String getDownloadFilename() {
     String timestamp =
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm_ss.SSS"));
-    return String.format("%s.tsv", timestamp);
+    return String.format("%s.json", timestamp);
   }
 }
