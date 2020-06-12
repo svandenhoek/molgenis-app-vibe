@@ -23,8 +23,8 @@ import org.molgenis.jobs.Progress;
 import org.molgenis.util.AppDataRootProvider;
 import org.molgenis.vibe.core.GeneDiseaseCollectionRetrievalRunner;
 import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollectionSerializer;
 import org.molgenis.vibe.core.formats.Phenotype;
-import org.molgenis.vibe.core.formats.serialization.GeneDiseaseCollectionSerializer;
 import org.springframework.stereotype.Service;
 
 @Service
