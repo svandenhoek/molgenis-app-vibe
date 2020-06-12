@@ -3,13 +3,14 @@ package org.molgenis.vibe;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.vibe.VibeJobExecutionMetadata.VIBE_JOB_EXECUTION;
 
-import java.io.BufferedReader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.data.DataService;
 import org.molgenis.data.UnknownEntityException;
@@ -17,6 +18,10 @@ import org.molgenis.data.file.FileStore;
 import org.molgenis.jobs.JobExecutor;
 import org.molgenis.jobs.model.JobExecution;
 import org.molgenis.jobs.model.JobExecution.Status;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollectionDeserializer;
+import org.molgenis.vibe.response.GeneDiseaseCollectionResponse;
+import org.molgenis.vibe.response.GeneDiseaseCollectionResponseMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +36,14 @@ class VibeController {
   private final VibeJobExecutionFactory vibeJobExecutionFactory;
   private final DataService dataService;
   private final FileStore fileStore;
+  private static final Gson gson;
+
+  static {
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    gsonBuilder.registerTypeAdapter(
+        GeneDiseaseCollection.class, new GeneDiseaseCollectionDeserializer());
+    gson = gsonBuilder.create();
+  }
 
   VibeController(
       JobExecutor jobExecutor,
@@ -54,8 +67,8 @@ class VibeController {
 
   @GetMapping
   @ResponseBody
-  public List<String> previewVibeResult(@RequestParam("id") String vibeJobExecutionId)
-      throws IOException {
+  public GeneDiseaseCollectionResponse previewVibeResult(
+      @RequestParam("id") String vibeJobExecutionId) throws IOException {
     VibeJobExecution vibeJobExecution =
         dataService.findOneById(VIBE_JOB_EXECUTION, vibeJobExecutionId, VibeJobExecution.class);
     if (vibeJobExecution == null) {
@@ -70,20 +83,11 @@ class VibeController {
     }
     String fileId = resultUrl.substring("/files/".length());
     File file = fileStore.getFile(fileId);
-    List<String> lines;
-    try (BufferedReader bufferedReader =
-        new BufferedReader(
-            new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 
-      lines = new ArrayList<>();
-      for (int i = 0; i <= 10; ++i) {
-        String line = bufferedReader.readLine();
-        if (line == null) {
-          break;
-        }
-        lines.add(line);
-      }
+    try (JsonReader jsonReader =
+        new JsonReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+      return GeneDiseaseCollectionResponseMapper.mapToResponse(
+          gson.fromJson(jsonReader, GeneDiseaseCollection.class));
     }
-    return lines;
   }
 }
