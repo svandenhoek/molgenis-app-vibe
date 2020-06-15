@@ -24,11 +24,14 @@
         <table id="previewTable" class="table" style="display: none; table-layout: fixed;">
           <colgroup>
             <col style="width:92px;" />
-            <col style="width:92px;" />
-            <col style="width:92px;" />
             <col />
           </colgroup>
-          <thead></thead>
+          <thead>
+          <tr>
+            <th>Gene</th>
+            <th>Diseases (with scores)</th>
+          </tr>
+          </thead>
           <tbody></tbody>
         </table>
         <p id="errorText" style="display: none;">Error occurred while processing request.</p>
@@ -57,51 +60,47 @@
       if (this.readyState != 4) return;
       document.getElementById('executeButton').removeAttribute("disabled")
       if (this.status == 200) {
-        var lines = JSON.parse(this.responseText);
+        var parsedJson = JSON.parse(this.responseText);
+        var content = '<tbody>';
 
-        var content = '<thead>';
-        lines[0].split('\t').forEach((element) => {
-          content += '<th>' + element + '</th>';
-        });
-        content += '</thead><tbody>';
-        for (i = 1; i < lines.length; i++) {
-          content += '<tr>'
-          lines[i].split('\t').forEach((lineElement, lineIndex) => {
-            if(lineIndex == 0) { // ncbigene
-              content += '<td><a href="http://identifiers.org/ncbigene/' + lineElement + '">' + lineElement + '</a></td>';
-            } else if(lineIndex == 1) { // hgnc symbol
-              content += '<td><a href="http://identifiers.org/hgnc.symbol/' + lineElement + '">' + lineElement + '</a></td>';
-            } else if(lineIndex == 3) { // diseases with score & sources
-              content += '<td style="white-space:pre;"><div style="overflow-x:scroll;">';
-              lineElement.split('|').forEach((diseaseInfo, diseaseInfoIndex) => {
-                if(diseaseInfoIndex > 0) {
-                  content += '<br />';
-                }
-                // split disease + score from pubmed IDs
-                var diseaseSplitSources = diseaseInfo.split(':');
-                // disease + score
-                var diseaseIdSplitScore = diseaseSplitSources[0].split(' ');
-                content += '<a href="http://linkedlifedata.com/resource/umls/id/' + diseaseIdSplitScore[0] + '">' + diseaseIdSplitScore[0] + '</a> ' + diseaseIdSplitScore[1] + ': ';
-                if(diseaseSplitSources[1] != null) {
-                  diseaseSplitSources[1].split(',').forEach((pubmed, pubmedIndex) => {
-                    if (pubmedIndex > 0) {
-                      content += ',';
-                    }
-                    content += '<a href="http://identifiers.org/pubmed/' + pubmed + '">' + pubmed + '</a>';
-                  });
-                }
-              });
-              content += '</div></td>';
-            } else {
-              content += '<td>' + lineElement + '</td>';
-            }
+        // Goes through all genes.
+        for(var geneId in parsedJson['genes']) {
+          // Generates the gene column.
+          var geneColumn = '<td>' + parsedJson['genes'][geneId]['symbol'] + '</td>';
+
+          // Retrieves & sorts all combinations belonging to the gene.
+          var combinationsForGene = parsedJson['combinations'].filter(function(combination) {
+            return combination['geneId'] == geneId;
           });
-          content += '</tr>'
+          sortCombinations(combinationsForGene);
+
+          // Generates the disease column.
+          var diseasesColumn = '<td style="white-space:pre;"><div style="overflow-x:auto;">';
+          combinationsForGene.forEach((combination, combinationIndex) => {
+            diseasesColumn += '<div style="float:left;width:60px;"';
+
+            // First combination contains highest score (due to sorted).
+            if(combinationIndex == 0) {
+              diseasesColumn += 'class="maxScore"';
+            }
+
+            diseasesColumn += '>' + combination['disgenetScore'] + '</div>' + parsedJson['diseases'][combination['diseaseId']]['name'] + '<br />';
+          });
+          diseasesColumn += '</div></td>';
+
+          // The order in which the columns should be presented.
+          content += '<tr>' + geneColumn + diseasesColumn + '</tr>';
         }
         content += '</tbody>';
 
+        // Writes content to HTML table.
         var table = document.getElementById('previewTable');
         table.insertAdjacentHTML('beforeend', content);
+
+        // Sorts the rows.
+        sortPreviewTable();
+
+        // Layout changes.
 
         document.getElementById('resultAnchor').setAttribute("href", jobExecution.resultUrl);
         document.getElementById('previewTable').style.display = 'table';
@@ -116,8 +115,37 @@
     };
     xhr.open('GET', '/api/vibe?id=' + jobExecution.identifier, true);
     xhr.send();
+  }
 
+  /* Sorts combinations based on highest disgenetScore first */
+  function sortCombinations(combinations) {
+    combinations.sort(function(a,b) {
+      if( a['disgenetScore'] < b['disgenetScore'] ) {
+        return 1;
+      }
+      if( a['disgenetScore'] > b['disgenetScore'] ) {
+        return -1;
+      }
+      return 0;
+    });
+  }
 
+  /* Sorts previewTable based on highest score per gene */
+  function sortPreviewTable() {
+    var previewRows = $('#previewTable tbody');
+
+    previewRows.find('tr').sort(function(a,b) {
+      var rowA = $(a).find('div.maxScore').text();
+      var rowB = $(b).find('div.maxScore').text();
+
+      if( rowA < rowB ) {
+        return 1;
+      }
+      if( rowA > rowB ) {
+        return -1;
+      }
+      return 0;
+    }).appendTo(previewRows);
   }
 
   function pollVibeJob(jobExecutionId) {
@@ -147,7 +175,6 @@
   document.getElementById('vibe-form').addEventListener("submit", function(e) {
     e.preventDefault();
     document.getElementById('executeButton').setAttribute("disabled", "disabled")
-    jQuery('#previewTable > thead').remove();
     jQuery('#previewTable > tbody').remove();
 
     var value = document.getElementById('inputPhenotypes').value
