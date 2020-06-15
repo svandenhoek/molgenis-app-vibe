@@ -10,23 +10,23 @@ import org.molgenis.vibe.core.formats.Source.Level;
 
 public class GeneDiseaseCollectionResponse {
   private Set<Combination> combinations;
-  private Set<Gene> genes;
-  private Set<Disease> diseases;
-  private Set<Source> sources;
+  private Map<String, Gene> genes;
+  private Map<String, Disease> diseases;
+  private Map<String, Source> sources;
 
   void setCombinations(Set<Combination> combinations) {
     this.combinations = combinations;
   }
 
-  void setGenes(Set<Gene> genes) {
+  void setGenes(Map<String, Gene> genes) {
     this.genes = genes;
   }
 
-  void setDiseases(Set<Disease> diseases) {
+  void setDiseases(Map<String, Disease> diseases) {
     this.diseases = diseases;
   }
 
-  void setSources(Set<Source> sources) {
+  void setSources(Map<String, Source> sources) {
     this.sources = sources;
   }
 

@@ -45,7 +45,7 @@ public abstract class GeneDiseaseCollectionResponseMapper {
   private static void processCombinations(
       Set<GeneDiseaseCombination> sourceCombinations, GeneDiseaseCollectionResponse target) {
     Set<GeneDiseaseCollectionResponse.Combination> responseCombinations = new HashSet<>();
-    Set<GeneDiseaseCollectionResponse.Source> responseSources = new HashSet<>();
+    Map<String, GeneDiseaseCollectionResponse.Source> responseSources = new HashMap<>();
 
     sourceCombinations.forEach(
         geneDiseaseCombination -> {
@@ -64,7 +64,8 @@ public abstract class GeneDiseaseCollectionResponseMapper {
               .keySet()
               .forEach(
                   sourceEntity ->
-                      responseSources.add(
+                      responseSources.put(
+                          sourceEntity.getName(),
                           new GeneDiseaseCollectionResponse.Source(
                               sourceEntity.getName(), sourceEntity.getLevel())));
         });
@@ -144,11 +145,12 @@ public abstract class GeneDiseaseCollectionResponseMapper {
    * @param target the {@link GeneDiseaseCollectionResponse} in which the data should be stored
    */
   private static void processGenes(Set<Gene> sourceGenes, GeneDiseaseCollectionResponse target) {
-    Set<GeneDiseaseCollectionResponse.Gene> responseGenes = new HashSet<>();
+    Map<String, GeneDiseaseCollectionResponse.Gene> responseGenes = new HashMap<>();
 
     sourceGenes.forEach(
         gene ->
-            responseGenes.add(
+            responseGenes.put(
+                gene.getId(),
                 new GeneDiseaseCollectionResponse.Gene(gene.getId(), gene.getSymbol().getId())));
 
     // Sets values in target.
@@ -163,11 +165,12 @@ public abstract class GeneDiseaseCollectionResponseMapper {
    */
   private static void processDiseases(
       Set<Disease> sourceDiseases, GeneDiseaseCollectionResponse target) {
-    Set<GeneDiseaseCollectionResponse.Disease> responseDiseases = new HashSet<>();
+    Map<String, GeneDiseaseCollectionResponse.Disease> responseDiseases = new HashMap<>();
 
     sourceDiseases.forEach(
         disease ->
-            responseDiseases.add(
+            responseDiseases.put(
+                disease.getId(),
                 new GeneDiseaseCollectionResponse.Disease(disease.getId(), disease.getName())));
 
     // Sets values in target.
