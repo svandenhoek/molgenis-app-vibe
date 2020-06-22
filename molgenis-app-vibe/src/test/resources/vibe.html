@@ -99,6 +99,12 @@
     runVibe(value)
   }
 
+  // Global var enabling functions to reach this data. Should only be updated when new job is completed!
+  var parsedJson;
+
+  // Global var for the pubmed table.
+  var pubmedTable;
+
   // Workaround for javascript loading.
   var script = document.createElement('script');
   script.src = '/js/datatables.min.js';
