@@ -15,7 +15,7 @@
             <small id="hpoTermsHelp" class="form-text text-muted">Comma-separated list of <a href="https://hpo.jax.org/">Human Phenotype Ontology</a> term identifiers (e.g. HP:0002996).</small>
           </form>
         </div>
-        <div id="progress" style="display: none;">
+        <div id="progress">
           <div class="d-flex align-items-center">
             <strong>Your request is being processed, usually takes a couple of minutes ...</strong>
             <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
@@ -35,10 +35,10 @@
               <div class="modal-body">
                 <div class="container-fluid">
                   <div class="row justify-content-center"><h4>Found matches</h4></div>
-                  <div class="row justify-content-center" id="detailsViewSourceCounts" style="text-align:center;"></div>
+                  <div class="row justify-content-center" id="detailsViewSourceCounts"></div>
                   <hr/>
                   <div class="row justify-content-center"><h4>Found Pubmed IDs</h4></div>
-                  <div class="row justify-content-center" id="detailsViewSourcesForPubmeds" style="text-align:center;"></div>
+                  <div class="row justify-content-center" id="detailsViewSourcesForPubmeds"></div>
                   <div class="row justify-content-center">
                     <div class="col">
                       <table id="pubmedsTable" class="table">
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Table with results -->
-        <table id="previewTable" class="table" style="display: none; table-layout: fixed;">
+        <table id="previewTable" class="table">
           <colgroup>
             <col style="width:160px;" />
             <col style="width:100px;" />
@@ -84,8 +84,8 @@
           <tbody></tbody>
         </table>
 
-        <p id="errorText" style="display: none;">Error occurred while processing request.</p>
-        <p id="resultText" style="display: none;">Done. Click <a id="resultAnchor">here</a> to download the result</p>
+        <p id="errorText">Error occurred while processing request.</p>
+        <p id="resultText">Done. Click <a id="resultAnchor">here</a> to download the result</p>
       </div>
     </div>
   </div>
