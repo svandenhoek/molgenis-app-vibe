@@ -172,7 +172,7 @@
           if (combinationIndex > 0) {
             diseasesHtml += '<tr>'
           }
-          diseasesHtml += '<td class="disgenetScore">' + combination['disgenetScore'] + '</td><td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#detailsView" data-gene="' + geneId + '" data-disease="' + combination['diseaseId'] + '">' + parsedJson['diseases'][combination['diseaseId']]['name'] + '</button></td></tr>';
+          diseasesHtml += '<td class="disgenetScore"><div>' + combination['disgenetScore'] + '</td><td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#detailsView" data-gene="' + geneId + '" data-disease="' + combination['diseaseId'] + '">' + parsedJson['diseases'][combination['diseaseId']]['name'] + '</button></td></tr>';
         });
 
         // Generates the gene column.
