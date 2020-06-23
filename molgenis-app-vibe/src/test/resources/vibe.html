@@ -34,9 +34,6 @@
               </div>
               <div class="modal-body">
                 <div class="container-fluid">
-                  <div class="row justify-content-center"><h4>Found matches</h4></div>
-                  <div class="row justify-content-center" id="detailsViewSourceCounts"></div>
-                  <hr/>
                   <div class="row justify-content-center"><h4>Found Pubmed IDs</h4></div>
                   <div class="row justify-content-center" id="detailsViewSourcesForPubmeds"></div>
                   <div class="row justify-content-center">
@@ -278,36 +275,6 @@
       title += '<br />' + parsedJson['diseases'][diseaseId]['name'];
     };
     $('#detailsViewTitle').html(title);
-
-    // Calculate source counts.
-    var totalSourceCounts = {};
-    selectedCombinations.forEach((combination, combinationIndex) => {
-      var sourceCounts = combination['sourceCounts'];
-      for(var source in sourceCounts) {
-        if(!(source in totalSourceCounts)) {
-          totalSourceCounts[source] = sourceCounts[source];
-        } else {
-          totalSourceCounts[source] += sourceCounts[source];
-        }
-      }
-    });
-
-    // Converts source counts to array and sorts it based on source name.
-    totalSourceCounts = Object.entries(totalSourceCounts)
-            .map(([source,count]) => ({source,count}))
-            .sort(function(a,b) {
-              var aSource = a['source'];
-              var bSource = b['source'];
-              return aSource < bSource ? -1 : aSource > bSource ? 1 : 0;
-            });
-
-    // Generate source counts HTML.
-    sourceCountsHtml = '';
-    totalSourceCounts.forEach((item, itemIndex) => {
-      sourceCountsHtml += '<div class="col">' + item['source'] + '<br />' + item['count'] + '</div>';
-    });
-    $('#detailsViewSourceCounts').html(sourceCountsHtml);
-
 
     // Resets Pubmeds table.
     pubmedTable
