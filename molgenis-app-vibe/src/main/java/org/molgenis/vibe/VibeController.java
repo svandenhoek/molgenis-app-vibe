@@ -18,8 +18,11 @@ import org.molgenis.data.file.FileStore;
 import org.molgenis.jobs.JobExecutor;
 import org.molgenis.jobs.model.JobExecution;
 import org.molgenis.jobs.model.JobExecution.Status;
+import org.molgenis.vibe.core.formats.Gene;
 import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
 import org.molgenis.vibe.core.formats.GeneDiseaseCollectionDeserializer;
+import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.GenePrioritizer;
+import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.HighestSingleDisgenetScoreGenePrioritizer;
 import org.molgenis.vibe.response.GeneDiseaseCollectionResponse;
 import org.molgenis.vibe.response.GeneDiseaseCollectionResponseMapper;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,10 +87,27 @@ class VibeController {
     String fileId = resultUrl.substring("/files/".length());
     File file = fileStore.getFile(fileId);
 
+    // Retrieves GeneDiseaseCollection from json file.
+    GeneDiseaseCollection geneDiseaseCollection;
     try (JsonReader jsonReader =
         new JsonReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      return GeneDiseaseCollectionResponseMapper.mapToResponse(
-          gson.fromJson(jsonReader, GeneDiseaseCollection.class));
+      geneDiseaseCollection = gson.fromJson(jsonReader, GeneDiseaseCollection.class);
     }
+
+    // Retrieves priority.
+    GenePrioritizer prioritizer = new HighestSingleDisgenetScoreGenePrioritizer();
+    List<Gene> genePriority = prioritizer.sort(geneDiseaseCollection);
+
+    // Generates subset.
+    GeneDiseaseCollection geneDiseaseCombinationOutput = new GeneDiseaseCollection();
+
+    int outputLimit = 10;
+    if(genePriority.size() < outputLimit) { outputLimit = genePriority.size(); }
+    for(int i = 0; i < outputLimit; i++) {
+      geneDiseaseCombinationOutput.addAll(geneDiseaseCollection.getByGene(genePriority.get(i)));
+    }
+
+    // Returns subset.
+    return GeneDiseaseCollectionResponseMapper.mapToResponse(geneDiseaseCombinationOutput);
   }
 }
