@@ -102,8 +102,10 @@ class VibeController {
     GeneDiseaseCollection geneDiseaseCombinationOutput = new GeneDiseaseCollection();
 
     int outputLimit = 10;
-    if(genePriority.size() < outputLimit) { outputLimit = genePriority.size(); }
-    for(int i = 0; i < outputLimit; i++) {
+    if (genePriority.size() < outputLimit) {
+      outputLimit = genePriority.size();
+    }
+    for (int i = 0; i < outputLimit; i++) {
       geneDiseaseCombinationOutput.addAll(geneDiseaseCollection.getByGene(genePriority.get(i)));
     }
 
