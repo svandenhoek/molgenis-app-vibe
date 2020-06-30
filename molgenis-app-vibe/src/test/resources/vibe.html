@@ -323,7 +323,7 @@
           pubmedTable.row.add( [
             pubmed['year'],
             source,
-            '<a target="_blank" href="' + pubmed['uri'] + '">' + pubmed['uri'].split(/\//).pop() + "</a>"
+            '<a target="_blank" rel="noopener noreferrer" href="' + pubmed['uri'] + '">' + pubmed['uri'].split(/\//).pop() + "</a>"
           ]);
         });
       }
