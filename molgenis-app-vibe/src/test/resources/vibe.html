@@ -272,9 +272,11 @@
     });
 
     // Generates title.
-    var title = parsedJson['genes'][geneId]['symbol'];
+    var geneSymbol = parsedJson['genes'][geneId]['symbol'];
+    var title = '<a target="_blank" rel="noopener noreferrer" href="http://identifiers.org/hgnc.symbol/' + geneSymbol + '">' + geneSymbol + '</a>' ;
     if(diseaseId != null) {
-      title += '<br />' + parsedJson['diseases'][diseaseId]['name'];
+      var diseaseName = parsedJson['diseases'][diseaseId]['name'];
+      title += '<br /><a target="_blank" rel="noopener noreferrer" href="http://linkedlifedata.com/resource/umls/id/' + diseaseId + '">' + diseaseName + '</a>' ;
     }
     $('#detailsViewTitle').html(title);
 
