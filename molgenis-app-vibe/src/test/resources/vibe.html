@@ -269,6 +269,15 @@
       return combination['geneId'] == geneId;
     });
 
+    // Generates title.
+    var geneSymbol = parsedJson['genes'][geneId]['symbol'];
+    var title = '<a target="_blank" rel="noopener noreferrer" href="http://identifiers.org/hgnc.symbol/' + geneSymbol + '">' + geneSymbol + '</a>' ;
+    if(diseaseId != null) {
+      var diseaseName = parsedJson['diseases'][diseaseId]['name'];
+      title += '<br /><a target="_blank" rel="noopener noreferrer" href="http://linkedlifedata.com/resource/umls/id/' + diseaseId + '">' + diseaseName + '</a>' ;
+    }
+    $('#detailsViewTitle').html(title);
+
     // Resets Pubmeds table.
     pubmedTable
             .clear()
