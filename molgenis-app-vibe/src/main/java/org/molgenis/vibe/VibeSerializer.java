@@ -14,8 +14,8 @@ public abstract class VibeSerializer {
     GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
     gsonBuilder.registerTypeAdapter(
         GeneDiseaseCollection.class, new GeneDiseaseCollectionSerializer());
-      gsonBuilder.registerTypeAdapter(
-              GeneDiseaseCollection.class, new GeneDiseaseCollectionDeserializer());
+    gsonBuilder.registerTypeAdapter(
+        GeneDiseaseCollection.class, new GeneDiseaseCollectionDeserializer());
     gson = gsonBuilder.create();
   }
 
