@@ -1,0 +1,30 @@
+package org.molgenis.vibe;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollectionDeserializer;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollectionSerializer;
+
+public abstract class VibeSerializer {
+  private static final Gson gson;
+
+  static {
+    GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
+    gsonBuilder.registerTypeAdapter(
+        GeneDiseaseCollection.class, new GeneDiseaseCollectionSerializer());
+      gsonBuilder.registerTypeAdapter(
+              GeneDiseaseCollection.class, new GeneDiseaseCollectionDeserializer());
+    gson = gsonBuilder.create();
+  }
+
+  public static String serializeGeneDiseaseCollection(GeneDiseaseCollection geneDiseaseCollection) {
+    return gson.toJson(geneDiseaseCollection);
+  }
+
+  public static GeneDiseaseCollection deserializeGeneDiseaseCollection(
+      JsonReader geneDiseaseCollectionJson) {
+    return gson.fromJson(geneDiseaseCollectionJson, GeneDiseaseCollection.class);
+  }
+}

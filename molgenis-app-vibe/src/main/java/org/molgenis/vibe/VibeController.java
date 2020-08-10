@@ -3,8 +3,6 @@ package org.molgenis.vibe;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.vibe.VibeJobExecutionMetadata.VIBE_JOB_EXECUTION;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +18,6 @@ import org.molgenis.jobs.model.JobExecution;
 import org.molgenis.jobs.model.JobExecution.Status;
 import org.molgenis.vibe.core.formats.Gene;
 import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
-import org.molgenis.vibe.core.formats.GeneDiseaseCollectionDeserializer;
 import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.GenePrioritizer;
 import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.HighestSingleDisgenetScoreGenePrioritizer;
 import org.molgenis.vibe.response.GeneDiseaseCollectionResponse;
@@ -39,14 +36,6 @@ class VibeController {
   private final VibeJobExecutionFactory vibeJobExecutionFactory;
   private final DataService dataService;
   private final FileStore fileStore;
-  private static final Gson gson;
-
-  static {
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    gsonBuilder.registerTypeAdapter(
-        GeneDiseaseCollection.class, new GeneDiseaseCollectionDeserializer());
-    gson = gsonBuilder.create();
-  }
 
   VibeController(
       JobExecutor jobExecutor,
@@ -91,7 +80,7 @@ class VibeController {
     GeneDiseaseCollection geneDiseaseCollection;
     try (JsonReader jsonReader =
         new JsonReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      geneDiseaseCollection = gson.fromJson(jsonReader, GeneDiseaseCollection.class);
+      geneDiseaseCollection = VibeSerializer.deserializeGeneDiseaseCollection(jsonReader);
     }
 
     // Retrieves priority.

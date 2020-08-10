@@ -3,8 +3,6 @@ package org.molgenis.vibe;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.core.ui.file.FileDownloadController.URI;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import org.molgenis.jobs.Progress;
 import org.molgenis.util.AppDataRootProvider;
 import org.molgenis.vibe.core.GeneDiseaseCollectionRetrievalRunner;
 import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
-import org.molgenis.vibe.core.formats.GeneDiseaseCollectionSerializer;
 import org.molgenis.vibe.core.formats.Phenotype;
 import org.springframework.stereotype.Service;
 
@@ -32,14 +29,6 @@ class VibeServiceImpl implements VibeService {
   private final DataService dataService;
   private final FileStore fileStore;
   private final FileMetaFactory fileMetaFactory;
-  private static final Gson gson;
-
-  static {
-    GsonBuilder gsonBuilder = new GsonBuilder().setPrettyPrinting();
-    gsonBuilder.registerTypeAdapter(
-        GeneDiseaseCollection.class, new GeneDiseaseCollectionSerializer());
-    gson = gsonBuilder.create();
-  }
 
   VibeServiceImpl(DataService dataService, FileStore fileStore, FileMetaFactory fileMetaFactory) {
     this.dataService = requireNonNull(dataService);
@@ -52,7 +41,7 @@ class VibeServiceImpl implements VibeService {
       Set<Phenotype> phenotypes, String filename, Progress progress) throws IOException {
     GeneDiseaseCollection collection =
         new GeneDiseaseCollectionRetrievalRunner(retrieveTdbLocation(), phenotypes).call();
-    String collectionJson = gson.toJson(collection);
+    String collectionJson = VibeSerializer.serializeGeneDiseaseCollection(collection);
 
     FileMeta fileMeta;
     try (InputStream inputStream =
