@@ -9,12 +9,11 @@ import java.util.Set;
 import org.molgenis.vibe.core.formats.Source.Level;
 
 /**
- * The response that is returned to the front-end. This class emulates a clean version of
- * {@link org.molgenis.vibe.core.formats.GeneDiseaseCollection} that does not contain multiple variables that allow for
- * easier data processing but only stores information as simple as possible (so that it can be converted f.e. by
- * serializing and be used elsewhere). As these variables are unused, {@code @SuppressWarnings("unused")} was added to
- * these variables.
- *
+ * The response that is returned to the front-end. This class emulates a clean version of {@link
+ * org.molgenis.vibe.core.formats.GeneDiseaseCollection} that does not contain multiple variables
+ * that allow for easier data processing but only stores information as simple as possible (so that
+ * it can be converted f.e. by serializing and be used elsewhere). As these variables are unused,
+ * {@code @SuppressWarnings("unused")} was added to these variables.
  */
 public class GeneDiseaseCollectionResponse {
   @SuppressWarnings("unused")
