@@ -13,7 +13,8 @@ import org.molgenis.vibe.core.formats.Source.Level;
  * org.molgenis.vibe.core.formats.GeneDiseaseCollection} that does not contain multiple variables
  * that allow for easier data processing but only stores information as simple as possible (so that
  * it can be converted f.e. by serializing and be used elsewhere). As these variables are unused,
- * {@code @SuppressWarnings("unused")} was added to these variables.
+ * {@code @SuppressWarnings("unused")} was added. Note that this class should not include any code
+ * that digests data (this should be done in {@link GeneDiseaseCollectionResponseMapper}!
  */
 @SuppressWarnings("unused")
 public class GeneDiseaseCollectionResponse {
