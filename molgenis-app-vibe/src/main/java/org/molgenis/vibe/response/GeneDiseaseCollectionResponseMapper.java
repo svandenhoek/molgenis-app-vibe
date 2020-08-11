@@ -22,6 +22,8 @@ import org.molgenis.vibe.core.formats.Source;
  * should not happen.
  */
 public abstract class GeneDiseaseCollectionResponseMapper {
+  private GeneDiseaseCollectionResponseMapper() {}
+
   public static GeneDiseaseCollectionResponse mapToResponse(GeneDiseaseCollection source) {
     GeneDiseaseCollectionResponse response = new GeneDiseaseCollectionResponse();
     mapToResponse(source, response);

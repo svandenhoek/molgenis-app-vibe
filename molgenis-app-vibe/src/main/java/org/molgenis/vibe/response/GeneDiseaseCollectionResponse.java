@@ -8,10 +8,25 @@ import java.util.Objects;
 import java.util.Set;
 import org.molgenis.vibe.core.formats.Source.Level;
 
+/**
+ * The response that is returned to the front-end. This class emulates a clean version of
+ * {@link org.molgenis.vibe.core.formats.GeneDiseaseCollection} that does not contain multiple variables that allow for
+ * easier data processing but only stores information as simple as possible (so that it can be converted f.e. by
+ * serializing and be used elsewhere). As these variables are unused, {@code @SuppressWarnings("unused")} was added to
+ * these variables.
+ *
+ */
 public class GeneDiseaseCollectionResponse {
+  @SuppressWarnings("unused")
   private Set<Combination> combinations;
+
+  @SuppressWarnings("unused")
   private Map<String, Gene> genes;
+
+  @SuppressWarnings("unused")
   private Map<String, Disease> diseases;
+
+  @SuppressWarnings("unused")
   private Map<String, Source> sources;
 
   void setCombinations(Set<Combination> combinations) {
@@ -31,10 +46,19 @@ public class GeneDiseaseCollectionResponse {
   }
 
   static class Combination {
+    @SuppressWarnings("unused")
     private String geneId;
+
+    @SuppressWarnings("unused")
     private String diseaseId;
+
+    @SuppressWarnings("unused")
     private Double disgenetScore;
+
+    @SuppressWarnings("unused")
     private Map<String, Integer> sourceCounts;
+
+    @SuppressWarnings("unused")
     private Map<String, Set<PubmedEvidence>> sourcePubmedEvidence;
 
     Combination(
@@ -65,7 +89,10 @@ public class GeneDiseaseCollectionResponse {
   }
 
   static class PubmedEvidence {
+    @SuppressWarnings("unused")
     private URI uri;
+
+    @SuppressWarnings("unused")
     private int year;
 
     PubmedEvidence(URI uri, int year) {
@@ -88,7 +115,10 @@ public class GeneDiseaseCollectionResponse {
   }
 
   static class Gene {
+    @SuppressWarnings("unused")
     private String id;
+
+    @SuppressWarnings("unused")
     private String symbol;
 
     Gene(String id, String symbol) {
@@ -111,7 +141,10 @@ public class GeneDiseaseCollectionResponse {
   }
 
   static class Disease {
+    @SuppressWarnings("unused")
     private String id;
+
+    @SuppressWarnings("unused")
     private String name;
 
     Disease(String id, String name) {
@@ -134,7 +167,10 @@ public class GeneDiseaseCollectionResponse {
   }
 
   static class Source {
+    @SuppressWarnings("unused")
     private String name;
+
+    @SuppressWarnings("unused")
     private Level level;
 
     public Source(String name, Level level) {

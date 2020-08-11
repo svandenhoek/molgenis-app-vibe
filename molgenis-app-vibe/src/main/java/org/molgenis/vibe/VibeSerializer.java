@@ -19,6 +19,8 @@ public abstract class VibeSerializer {
     gson = gsonBuilder.create();
   }
 
+  private VibeSerializer() {}
+
   public static String serializeGeneDiseaseCollection(GeneDiseaseCollection geneDiseaseCollection) {
     return gson.toJson(geneDiseaseCollection);
   }

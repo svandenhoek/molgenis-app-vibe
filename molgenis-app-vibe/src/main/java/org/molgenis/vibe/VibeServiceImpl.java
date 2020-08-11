@@ -61,13 +61,10 @@ class VibeServiceImpl implements VibeService {
     Properties properties = new Properties();
     properties.load(propertiesStream);
 
-    Path vibeDataPath =
-        Paths.get(
-            AppDataRootProvider.getAppDataRoot().toString(),
-            "data",
-            properties.getProperty("vibe-tdb.dir"));
-
-    return vibeDataPath;
+    return Paths.get(
+        AppDataRootProvider.getAppDataRoot().toString(),
+        "data",
+        properties.getProperty("vibe-tdb.dir"));
   }
 
   private FileMeta createFileMeta(File file) {
