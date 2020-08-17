@@ -64,7 +64,6 @@ pipeline {
                         container('maven') {
                             dir('molgenis-app-vibe') {
                                 script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                     sh "mvn -q -B rpm:rpm -Drpm.release.version=${env.PREVIEW_VERSION}"
                                     // make sure you have no linebreaks in RPM variable
                                     env.RPM = sh(script: 'ls -1 target/rpm/molgenis/RPMS/noarch', returnStdout: true).trim()
@@ -103,8 +102,6 @@ pipeline {
                         container('maven') {
                             dir('molgenis-app-vibe') {
                                 script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY}"
-                                    sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=dev -Ddockerfile.repository=${LOCAL_REPOSITORY}"
                                     env.RPM_TAG = sh(script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout', returnStdout: true)
                                     sh "mvn -q -B rpm:rpm -Drpm.release.version=${RPM_TAG}"
                                     // make sure you have no linebreaks in RPM variable
@@ -137,10 +134,6 @@ pipeline {
                             sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs -T4"
                             sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
-                            dir('molgenis-app-vibe') {
-                                sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${BRANCH_NAME}-latest"
-                                sh "mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=latest"
-                            }
                         }
                     }
                 }
@@ -160,12 +153,6 @@ pipeline {
                         container('maven') {
                             script {
                                 env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
-                            }
-                            // deploy Docker image
-                            dir('molgenis-app-vibe') {
-                                script {
-                                    sh "mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG} -Ddockerfile.repository=${LOCAL_REPOSITORY} -Ddockerfile.warfile.version=${TAG}"
-                                }
                             }
                             // deploy RPM
                             // need to run install phase first
@@ -206,12 +193,6 @@ pipeline {
                     steps {
                         container('maven') {
                             script {
-                                // Can not use DSL here because of bug in Jenkins
-                                // The build wants to create a tmp directory in the target/checkout/molgenis-app
-                                // This is not permitted
-                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:build dockerfile:tag dockerfile:push -Ddockerfile.tag=${TAG}"
-                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=${BRANCH_NAME}-stable"
-                                sh "cd target/checkout/molgenis-app-vibe && mvn -q -B dockerfile:tag dockerfile:push -Ddockerfile.tag=stable"
                                 // Build RPM to push to registry
                                 sh "cd target/checkout/molgenis-app-vibe && mvn -q -B rpm:rpm -Drpm.release.version=${TAG}"
                                 // make sure you have no linebreaks in RPM variable
