@@ -3,13 +3,12 @@ package org.molgenis.vibe;
 import static java.util.Objects.requireNonNull;
 import static org.molgenis.vibe.VibeJobExecutionMetadata.VIBE_JOB_EXECUTION;
 
-import java.io.BufferedReader;
+import com.google.gson.stream.JsonReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import org.molgenis.data.DataService;
 import org.molgenis.data.UnknownEntityException;
@@ -17,6 +16,12 @@ import org.molgenis.data.file.FileStore;
 import org.molgenis.jobs.JobExecutor;
 import org.molgenis.jobs.model.JobExecution;
 import org.molgenis.jobs.model.JobExecution.Status;
+import org.molgenis.vibe.core.formats.Gene;
+import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
+import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.GenePrioritizer;
+import org.molgenis.vibe.core.query_output_digestion.prioritization.gene.HighestSingleDisgenetScoreGenePrioritizer;
+import org.molgenis.vibe.response.GeneDiseaseCollectionResponse;
+import org.molgenis.vibe.response.GeneDiseaseCollectionResponseMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,8 +59,8 @@ class VibeController {
 
   @GetMapping
   @ResponseBody
-  public List<String> previewVibeResult(@RequestParam("id") String vibeJobExecutionId)
-      throws IOException {
+  public GeneDiseaseCollectionResponse previewVibeResult(
+      @RequestParam("id") String vibeJobExecutionId) throws IOException {
     VibeJobExecution vibeJobExecution =
         dataService.findOneById(VIBE_JOB_EXECUTION, vibeJobExecutionId, VibeJobExecution.class);
     if (vibeJobExecution == null) {
@@ -70,20 +75,30 @@ class VibeController {
     }
     String fileId = resultUrl.substring("/files/".length());
     File file = fileStore.getFile(fileId);
-    List<String> lines;
-    try (BufferedReader bufferedReader =
-        new BufferedReader(
-            new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 
-      lines = new ArrayList<>();
-      for (int i = 0; i <= 10; ++i) {
-        String line = bufferedReader.readLine();
-        if (line == null) {
-          break;
-        }
-        lines.add(line);
-      }
+    // Retrieves GeneDiseaseCollection from json file.
+    GeneDiseaseCollection geneDiseaseCollection;
+    try (JsonReader jsonReader =
+        new JsonReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+      geneDiseaseCollection = VibeSerializer.deserializeGeneDiseaseCollection(jsonReader);
     }
-    return lines;
+
+    // Retrieves priority.
+    GenePrioritizer prioritizer = new HighestSingleDisgenetScoreGenePrioritizer();
+    List<Gene> genePriority = prioritizer.sort(geneDiseaseCollection);
+
+    // Generates subset.
+    GeneDiseaseCollection geneDiseaseCombinationOutput = new GeneDiseaseCollection();
+
+    int outputLimit = 10;
+    if (genePriority.size() < outputLimit) {
+      outputLimit = genePriority.size();
+    }
+    for (int i = 0; i < outputLimit; i++) {
+      geneDiseaseCombinationOutput.addAll(geneDiseaseCollection.getByGene(genePriority.get(i)));
+    }
+
+    // Returns subset.
+    return GeneDiseaseCollectionResponseMapper.mapToResponse(geneDiseaseCombinationOutput);
   }
 }

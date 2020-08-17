@@ -2,8 +2,8 @@
   <div class="col-12">
     <div class="row justify-content-center">
       <div class="col-md-8">
-        <h1>VIBE v3.1</h1>
-        <p class="lead">Variant Interpretation using Biomedical literature Evidence (<a href="https://github.com/molgenis/vibe">GitHub</a><!-- | <a href="http://localhost:8080/">Paper</a>--> | <a href="https://github.com/molgenis/vibe/blob/3.0/database/LICENSES.md">Database</a>)</p>
+        <h1>VIBE v4.0</h1>
+        <p class="lead">Variant Interpretation using Biomedical literature Evidence (<a href="https://github.com/molgenis/vibe">GitHub</a><!-- | <a href="http://localhost:8080/">Paper</a>--> | <a href="https://github.com/molgenis/vibe/blob/3.1/database/LICENSES.md">Database</a>)</p>
         <div class="jumbotron">
           <form id="vibe-form">
             <div class="input-group mb-3">
@@ -15,24 +15,75 @@
             <small id="hpoTermsHelp" class="form-text text-muted">Comma-separated list of <a href="https://hpo.jax.org/">Human Phenotype Ontology</a> term identifiers (e.g. HP:0002996).</small>
           </form>
         </div>
-        <div id="progress" style="display: none;">
+        <div id="progress">
           <div class="d-flex align-items-center">
             <strong>Your request is being processed, usually takes a couple of minutes ...</strong>
             <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
           </div>
         </div>
-        <table id="previewTable" class="table" style="display: none; table-layout: fixed;">
+
+        <!-- Bootstrap Modal -->
+        <div class="modal fade" id="detailsView" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3 class="modal-title" id="detailsViewTitle">Pubmed view title</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="container-fluid">
+                  <div class="row justify-content-center"><h4>Found Pubmed IDs</h4></div>
+                  <div class="row justify-content-center" id="detailsViewSourcesForPubmeds"></div>
+                  <div class="row justify-content-center">
+                    <div class="col">
+                      <table id="pubmedsTable" class="table">
+                        <colgroup>
+                          <col />
+                          <col />
+                          <col />
+                        </colgroup>
+                        <thead>
+                        <tr>
+                          <th>Year</th>
+                          <th>Source</th>
+                          <th>Pubmed ID</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer" id="detailsViewFooter">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table with results -->
+        <table id="previewTable" class="table">
           <colgroup>
-            <col style="width:92px;" />
-            <col style="width:92px;" />
-            <col style="width:92px;" />
+            <col style="width:160px;" />
+            <col style="width:100px;" />
             <col />
           </colgroup>
-          <thead></thead>
+          <thead>
+          <tr>
+            <th>Gene</th>
+            <th>Score</th>
+            <th>Disease/Disorder</th>
+          </tr>
+          </thead>
           <tbody></tbody>
         </table>
-        <p id="errorText" style="display: none;">Error occurred while processing request.</p>
-        <p id="resultText" style="display: none;">Done. Click <a id="resultAnchor">here</a> to download the result</p>
+
+        <p id="errorText">Error occurred while processing request.</p>
+        <p id="resultText">Click <a id="resultAnchor">here</a> to download the result.
+          <br /><b>IMPORTANT:</b> The "count" field (which is not used within the app) is currently unreliable!</p>
       </div>
     </div>
   </div>
@@ -46,6 +97,18 @@
     runVibe(value)
   }
 
+  // Global var enabling functions to reach this data. Should only be updated when new job is completed!
+  var parsedJson;
+
+  // Global var for the pubmed table.
+  var pubmedTable;
+
+  // Workaround for javascript loading.
+  var script = document.createElement('script');
+  script.src = '/js/datatables.min.js';
+  document.head.appendChild(script);
+
+  // Sets CSS.
   document.getElementById('previewTable').style.display = 'none';
   document.getElementById('errorText').style.display = 'none';
   document.getElementById('resultText').style.display = 'none';
@@ -55,54 +118,19 @@
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState != 4) return;
-      document.getElementById('executeButton').removeAttribute("disabled")
+      document.getElementById('executeButton').removeAttribute("disabled");
       if (this.status == 200) {
-        var lines = JSON.parse(this.responseText);
+        // Replaces global parsedJson variable.
+        parsedJson = JSON.parse(this.responseText);
 
-        var content = '<thead>';
-        lines[0].split('\t').forEach((element) => {
-          content += '<th>' + element + '</th>';
-        });
-        content += '</thead><tbody>';
-        for (i = 1; i < lines.length; i++) {
-          content += '<tr>'
-          lines[i].split('\t').forEach((lineElement, lineIndex) => {
-            if(lineIndex == 0) { // ncbigene
-              content += '<td><a href="http://identifiers.org/ncbigene/' + lineElement + '">' + lineElement + '</a></td>';
-            } else if(lineIndex == 1) { // hgnc symbol
-              content += '<td><a href="http://identifiers.org/hgnc.symbol/' + lineElement + '">' + lineElement + '</a></td>';
-            } else if(lineIndex == 3) { // diseases with score & sources
-              content += '<td style="white-space:pre;"><div style="overflow-x:scroll;">';
-              lineElement.split('|').forEach((diseaseInfo, diseaseInfoIndex) => {
-                if(diseaseInfoIndex > 0) {
-                  content += '<br />';
-                }
-                // split disease + score from pubmed IDs
-                var diseaseSplitSources = diseaseInfo.split(':');
-                // disease + score
-                var diseaseIdSplitScore = diseaseSplitSources[0].split(' ');
-                content += '<a href="http://linkedlifedata.com/resource/umls/id/' + diseaseIdSplitScore[0] + '">' + diseaseIdSplitScore[0] + '</a> ' + diseaseIdSplitScore[1] + ': ';
-                if(diseaseSplitSources[1] != null) {
-                  diseaseSplitSources[1].split(',').forEach((pubmed, pubmedIndex) => {
-                    if (pubmedIndex > 0) {
-                      content += ',';
-                    }
-                    content += '<a href="http://identifiers.org/pubmed/' + pubmed + '">' + pubmed + '</a>';
-                  });
-                }
-              });
-              content += '</div></td>';
-            } else {
-              content += '<td>' + lineElement + '</td>';
-            }
-          });
-          content += '</tr>'
-        }
-        content += '</tbody>';
-
+        // Generates the table and writes it to HTML.
         var table = document.getElementById('previewTable');
-        table.insertAdjacentHTML('beforeend', content);
+        table.insertAdjacentHTML('beforeend', generatePreviewTableContent());
 
+        // Sorts the table rows.
+        sortPreviewTable();
+
+        // Layout changes.
         document.getElementById('resultAnchor').setAttribute("href", jobExecution.resultUrl);
         document.getElementById('previewTable').style.display = 'table';
         document.getElementById('resultText').style.display = 'block';
@@ -116,9 +144,187 @@
     };
     xhr.open('GET', '/api/vibe?id=' + jobExecution.identifier, true);
     xhr.send();
-
-
   }
+
+  /* Fill preview table with content. */
+  function generatePreviewTableContent() {
+    var content = '<tbody>';
+
+    // Only tries to process results if there are any.
+    if(parsedJson['combinations'].length > 0) {
+      // Goes through all genes.
+      for (var geneId in parsedJson['genes']) {
+        // Retrieves & sorts all combinations belonging to the gene.
+        var combinationsForGene = parsedJson['combinations'].filter(function (combination) {
+          return combination['geneId'] == geneId;
+        });
+        sortCombinations(combinationsForGene);
+
+        // Generates the disease column.
+        var diseasesHtml = '';
+        var diseasesForGene = 0;
+        combinationsForGene.forEach((combination, combinationIndex) => {
+          diseasesForGene += 1;
+
+          // First combination contains highest score (due to sorted).
+          if (combinationIndex > 0) {
+            diseasesHtml += '<tr>'
+          }
+          diseasesHtml += '<td class="disgenetScore"><div>' + combination['disgenetScore'] + '</td><td><button type="button" class="btn btn-light" data-toggle="modal" data-target="#detailsView" data-gene="' + geneId + '" data-disease="' + combination['diseaseId'] + '">' + parsedJson['diseases'][combination['diseaseId']]['name'] + '</button></td></tr>';
+        });
+
+        // Generates the gene column.
+        var geneHtml = '<tr class="geneRow"><td rowspan="' + diseasesForGene + '"><button type="button" class="btn btn-light" data-toggle="modal" data-target="#detailsView" data-gene="' + geneId + '">' + parsedJson['genes'][geneId]['symbol'] + '</button></td>';
+
+        // The order in which the columns should be presented.
+        content += geneHtml + diseasesHtml;
+      }
+    }
+    content += '</tbody>';
+
+    return(content);
+  }
+
+  /* Sorts combinations based on highest disgenetScore first */
+  function sortCombinations(combinations) {
+    combinations.sort(function(a,b) {
+      if( a['disgenetScore'] < b['disgenetScore'] ) {
+        return 1;
+      }
+      if( a['disgenetScore'] > b['disgenetScore'] ) {
+        return -1;
+      }
+      return 0;
+    });
+  }
+
+  /* Sorts previewTable based on highest score per gene */
+  function sortPreviewTable() {
+    var previewTableBody = $('#previewTable tbody');
+    var geneGroups = [];
+
+    // Detaches rows and stores these as either parent or child row.
+    previewTableBody.find('tr').each(function() {
+      $(this).detach();
+      if($(this).hasClass('geneRow')) {
+        geneGroups.push({parent:$(this), children:[]});
+      } else {
+        geneGroups[geneGroups.length-1].children.push($(this));
+      }
+    });
+
+    // Sorts gene-rows.
+    geneGroups.sort(function(a,b) {
+      var parentA = a.parent.find('td.disgenetScore').text();
+      var parentB = b.parent.find('td.disgenetScore').text();
+
+      if( parentA < parentB ) {
+        return 1;
+      }
+      if( parentA > parentB ) {
+        return -1;
+      }
+      return 0;
+    });
+
+    // Writes the rows to the table again.
+    geneGroups.forEach((geneGroup, geneGroupIndex) => {
+      previewTableBody.append(geneGroup.parent).append(geneGroup.children);
+    });
+  }
+
+  /* Initializes pubmed table. */
+  $(document).ready(initializePubmedTable);
+  function initializePubmedTable() {
+    pubmedTable = $('#pubmedsTable').DataTable({
+      dom: 'tir',
+      deferRender: true,
+      scrollY: '40vh',
+      scroller: true,
+      order: [[ 0, "desc" ]],
+      buttons: [
+        { extend: 'csv', text: 'Pubmed IDs (CSV)', title:'pubmed_ids', className: 'btn btn-light' },
+        { extend: 'excel', text: 'Pubmed IDs (Excel)', title:'pubmed_ids', className: 'btn btn-light' }
+      ]
+    });
+
+    // Adds buttons to detailsView footer.
+    pubmedTable.buttons().container()
+            .prependTo( $('#detailsViewFooter') );
+  }
+
+  /* Triggers pubmed view modal. */
+  $('#detailsView').on('show.bs.modal', function (event) {
+    // Retrieves data from button.
+    var button = $(event.relatedTarget);
+    var geneId = button.data('gene');
+    var diseaseId = button.data('disease');
+
+    // Retrieve selected combinations.
+    var selectedCombinations = parsedJson['combinations'].filter(function(combination) {
+      if(diseaseId != null) {
+        return combination['geneId'] == geneId && combination['diseaseId'] == diseaseId;
+      }
+      return combination['geneId'] == geneId;
+    });
+
+    // Generates title.
+    var geneSymbol = parsedJson['genes'][geneId]['symbol'];
+    var title = '<a target="_blank" rel="noopener noreferrer" href="http://identifiers.org/hgnc.symbol/' + geneSymbol + '">' + geneSymbol + '</a>' ;
+    if(diseaseId != null) {
+      var diseaseName = parsedJson['diseases'][diseaseId]['name'];
+      title += '<br /><a target="_blank" rel="noopener noreferrer" href="http://linkedlifedata.com/resource/umls/id/' + diseaseId + '">' + diseaseName + '</a>' ;
+    }
+    $('#detailsViewTitle').html(title);
+
+    // Resets Pubmeds table.
+    pubmedTable
+            .clear()
+            .order([0, 'desc'])
+            .column(1).search('');
+
+    // Generate pubmed table HTML.
+    selectedCombinations.forEach((combination, combinationIndex) => {
+      var sourcePubmeds = combination['sourcePubmedEvidence'];
+      for(var source in sourcePubmeds) {
+        var pubmedsForSource = sourcePubmeds[source];
+        pubmedsForSource.forEach((pubmed, pubmedIndex) => {
+          pubmedTable.row.add( [
+            pubmed['year'],
+            source,
+            '<a target="_blank" rel="noopener noreferrer" href="' + pubmed['uri'] + '">' + pubmed['uri'].split(/\//).pop() + "</a>"
+          ]);
+        });
+      }
+    });
+    // Draws the table.
+    pubmedTable.draw();
+
+    // Clears pubmed source buttons.
+    $('#detailsViewSourcesForPubmeds').empty();
+
+    // Generates pubmed source buttons.
+    pubmedTable.column(1).data().unique().sort().each( function(source, sourceIndex) {
+      $('#detailsViewSourcesForPubmeds').append('<div class="col"><button class="btn btn-light" data-value="' + source + '" class="pubmedsSourceFilter">' + source + '</button></div>');
+    });
+    if($('#detailsViewSourcesForPubmeds button').length > 1) {
+      $('#detailsViewSourcesForPubmeds').prepend('<div class="col"><button class="btn btn-dark" data-value="" class="pubmedsSourceFilter">All</button></div>');
+    } else { // If only 1 buton, make it dark.
+      $('#detailsViewSourcesForPubmeds button').removeClass('btn-light').addClass('btn-dark');
+    }
+
+    // Click filter event that filters pubmeds on source.
+    $('#detailsViewSourcesForPubmeds button').click(function() {
+      $('#detailsViewSourcesForPubmeds').find('button.btn-dark').removeClass('btn-dark').addClass('btn-light');
+      $(this).removeClass('btn-light').addClass('btn-dark');
+      pubmedTable.columns(1).search($(this).data('value')).draw();
+    });
+  });
+
+  // Fix for: https://www.gyrocode.com/articles/jquery-datatables-column-width-issues-with-bootstrap-tabs/#example3
+  $('#detailsView').on('shown.bs.modal', function(){
+    pubmedTable.scroller.measure();
+  });
 
   function pollVibeJob(jobExecutionId) {
     setTimeout(function() {
@@ -133,7 +339,7 @@
             handleCompletedVibeJob(jobExecution)
           }
         } else {
-          document.getElementById('executeButton').removeAttribute("disabled")
+          document.getElementById('executeButton').removeAttribute("disabled");
           document.getElementById('previewTable').style.display = 'none';
           document.getElementById('errorText').style.display = 'block';
           document.getElementById('resultText').style.display = 'none';
@@ -146,11 +352,11 @@
   }
   document.getElementById('vibe-form').addEventListener("submit", function(e) {
     e.preventDefault();
-    document.getElementById('executeButton').setAttribute("disabled", "disabled")
-    jQuery('#previewTable > thead').remove();
+    document.getElementById('executeButton').setAttribute("disabled", "disabled");
+    jQuery('#previewTable').hide();
     jQuery('#previewTable > tbody').remove();
 
-    var value = document.getElementById('inputPhenotypes').value
+    var value = document.getElementById('inputPhenotypes').value;
 
     runVibe(value);
   });
@@ -175,7 +381,7 @@
       if (this.status == 200) {
         pollVibeJob(JSON.parse(this.responseText).identifier);
       } else {
-        document.getElementById('executeButton').removeAttribute("disabled")
+        document.getElementById('executeButton').removeAttribute("disabled");
         document.getElementById('errorText').style.display = 'block';
         document.getElementById('resultText').style.display = 'none';
         document.getElementById('progress').style.display = 'none';

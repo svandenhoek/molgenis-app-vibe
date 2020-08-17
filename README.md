@@ -8,13 +8,20 @@ genome diagnostics to prioritize genes by matching patient symptoms to literatur
 1. Follow the instructions as described on <a href="https://molgenis.gitbooks.io/molgenis/content/v/8.1/guide-development.html#setting-your-molgenis-server-properties">Developing MOLGENIS</a> and <a href="https://molgenis.gitbooks.io/molgenis/content/v/8.1/guide-using-an-ide.html">Using an IDE (Intellij)</a> (select Java 11 JDK & language level 11 instead).
 2. Extract the content of <a href="https://molgenis.org/downloads/vibe/vibe-3.1.0-tdb.tar.gz">vibe-3.1.0-tdb.tar.gz</a> to `<MOLGENIS_HOME>/data/vibe`.
 3. Launch the application.
-4. Configure the homepage:
-    1. Sign in as superuser.
-    2. Navigate to the data explorer.
-    3. Select 'Static content' in the entity type dropdown.
-    4. Edit the row with id 'home'.
-    5. Copy the content of <a href="./molgenis-app-vibe/src/test/resources/vibe.html">this file</a> into the Content field.
-    6. Click on the save button.
+4. Sign in as superuser.
+5. Update homepage:
+    1. Navigate to the data explorer.
+    2. Select 'Static content' in the entity type dropdown.
+    3. Edit the row with id 'home'.
+    4. Copy the content of <a href="./molgenis-app-vibe/src/test/resources/vibe.html">this file</a> into the Content field.
+    5. Click on the save button.
+6. Update setings:
+    1. Navigate to the data explorer.
+    2. Select 'Application Settings' in the entity type dropdown.
+    3. Edit the row with Application Title 'MOLGENIS'.
+    4. Under 'CSS href', add:  
+    `vibe.css`
+    5. Click on the save button.
 
 ### Build new version for deployment.
 1. `cd /path/to/vibe`
