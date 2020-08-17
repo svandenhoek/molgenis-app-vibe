@@ -108,6 +108,11 @@
   script.src = '/js/datatables.min.js';
   document.head.appendChild(script);
 
+  // Runs functions when document is loaded.
+  window.onload = function() {
+    initializePubmedTable()
+  }
+
   // Sets CSS.
   document.getElementById('previewTable').style.display = 'none';
   document.getElementById('errorText').style.display = 'none';
@@ -234,7 +239,6 @@
   }
 
   /* Initializes pubmed table. */
-  $(document).ready(initializePubmedTable);
   function initializePubmedTable() {
     pubmedTable = $('#pubmedsTable').DataTable({
       dom: 'tir',
