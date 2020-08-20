@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
 
   <!-- More Project Information -->
-  <name>molgenis-app-vibe</name>
+  <name>MOLGENIS vibe</name>
   <description>
     MOLGENIS is a collaborative open source project on a mission to generate great software infrastructure for life
     science research.
@@ -67,6 +67,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.organization>molgenis</sonar.organization>
     <sonar.github.repository>molgenis/molgenis-app-vibe</sonar.github.repository>
+    <sonar.projectName>molgenis-app-vibe</sonar.projectName>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
     <sonar.coverage.jacoco.xmlReportPaths>${project.reporting.outputDirectory}/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
