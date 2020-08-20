@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
 
   <!-- More Project Information -->
-  <name>MOLGENIS-APP-VIBE</name>
+  <name>molgenis-app-vibe</name>
   <description>
     MOLGENIS is a collaborative open source project on a mission to generate great software infrastructure for life
     science research.
