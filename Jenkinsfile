@@ -53,11 +53,6 @@ pipeline {
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${env.SONAR_TOKEN} -Dsonar.github.oauth=${env.GITHUB_TOKEN} -Dsonar.pullrequest.base=${CHANGE_TARGET} -Dsonar.pullrequest.branch=${BRANCH_NAME} -Dsonar.pullrequest.key=${env.CHANGE_ID} -Dsonar.pullrequest.provider=GitHub -Dsonar.pullrequest.github.repository=molgenis/molgenis-app-vibe -Dsonar.ws.timeout=120"
                         }
                     }
-                    post {
-                        always {
-                            junit '**/target/surefire-reports/**.xml'
-                        }
-                    }
                 }
                 stage('Push to registries [ PR ]') {
                     steps {
@@ -89,11 +84,6 @@ pipeline {
                             sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs -T4"
                             sh "curl -s https://codecov.io/bash | bash -s - -c -F unit -K  -C ${GIT_COMMIT}"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.ws.timeout=120"
-                        }
-                    }
-                    post {
-                        always {
-                            junit '**/target/surefire-reports/**.xml'
                         }
                     }
                 }
