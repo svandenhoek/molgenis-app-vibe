@@ -69,6 +69,7 @@
     <sonar.github.repository>molgenis/molgenis-app-vibe</sonar.github.repository>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.reporting.outputDirectory}/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 
     <!-- skip stuff -->
     <isPullRequest>true</isPullRequest>
