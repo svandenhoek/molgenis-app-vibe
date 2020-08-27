@@ -166,7 +166,7 @@ pipeline {
                                 // Build RPM to push to registry
                                 sh "cd target/checkout/molgenis-app-vibe && mvn -q -B rpm:rpm -Drpm.release.version=${TAG}"
                                 // make sure you have no linebreaks in RPM variable
-                                env.RPM = sh(script: 'cd target/checkout/molgenis-app-vibe && ls -1 target/rpm/molgenis/RPMS/noarch', returnStdout: true).trim()
+                                env.RPM = sh(script: 'cd target/checkout/molgenis-app-vibe && ls -1 target/rpm/molgenis-app-vibe/RPMS/noarch', returnStdout: true).trim()
                                 sh "cd target/checkout/molgenis-app-vibe && mvn deploy:deploy-file -DartifactId=molgenis-app-vibe -DgroupId=org.molgenis -Dversion=${env.TAG} -DrepositoryId=${env.LOCAL_REGISTRY} -Durl=${YUM_REPOSITORY_RELEASES} -Dfile=target/rpm/molgenis-app-vibe/RPMS/noarch/${env.RPM}"
                             }
                         }
