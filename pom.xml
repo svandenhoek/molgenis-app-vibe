@@ -157,12 +157,12 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>${sonatype.id}</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>registry.molgenis.org</id>
+      <url>https://registry.molgenis.org/repository/maven-snapshots</url>
     </snapshotRepository>
     <repository>
-      <id>${sonatype.id}</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>registry.molgenis.org</id>
+      <url>https://registry.molgenis.org/repository/maven-releases</url>
     </repository>
   </distributionManagement>
 
