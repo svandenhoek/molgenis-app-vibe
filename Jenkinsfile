@@ -121,7 +121,7 @@ pipeline {
                             input(message: 'Prepare to release?')
                         }
                         container('maven') {
-                            sh "mvn -q -B release:prepare -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-q -B -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Pproduction\""
+                            sh "mvn -q -B release:prepare -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -DskipITs -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
@@ -162,7 +162,7 @@ pipeline {
                             }
                         }
                         container('maven') {
-                            sh "mvn -q -B release:perform -Darguments=\"-q -B -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Pproduction\""
+                            sh "mvn -q -B release:perform -Darguments=\"-B -DskipITs -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
