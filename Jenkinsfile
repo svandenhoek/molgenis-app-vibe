@@ -106,11 +106,6 @@ pipeline {
                 expression { BRANCH_NAME ==~ /[0-9]\.[0-9]/ }
                 beforeAgent true
             }
-            agent {
-                kubernetes {
-                    label('molgenis-it-jdk11')
-                }
-            }
             stages {
                 stage('Build [ x.x ]') {
                     steps {
