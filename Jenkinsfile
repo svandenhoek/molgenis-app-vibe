@@ -106,17 +106,9 @@ pipeline {
                 expression { BRANCH_NAME ==~ /[0-9]\.[0-9]/ }
                 beforeAgent true
             }
-            agent {
-                kubernetes {
-                    label('molgenis-it-jdk11')
-                }
-            }
             stages {
                 stage('Build [ x.x ]') {
                     steps {
-                        dir('/home/jenkins/.m2') {
-                            unstash 'maven-settings'
-                        }
                         container('maven') {
                             sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs -T4"
                             sh "mvn -q -B sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.ws.timeout=120"
@@ -165,8 +157,8 @@ pipeline {
                     steps {
                         container('vault') {
                             script {
-                                env.PGP_SECRETKEY = "keyfile:/home/jenkins/key.asc"
-                                sh(script: 'vault read -field=secret.asc secret/ops/certificate/pgp/molgenis-ci > /home/jenkins/key.asc')
+                                env.PGP_SECRETKEY = "keyfile:${JENKINS_AGENT_WORKDIR}/key.asc"
+                                sh(script: 'vault read -field=secret.asc secret/ops/certificate/pgp/molgenis-ci > ${JENKINS_AGENT_WORKDIR}/key.asc')
                             }
                         }
                         container('maven') {
