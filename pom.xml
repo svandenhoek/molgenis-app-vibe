@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.molgenis</groupId>
   <artifactId>molgenis-vibe</artifactId>
-  <version>8.1.8-VIBE-1.1.0-SNAPSHOT</version>
+  <version>8.1.8-VIBE-1.1.0-SNAPSHOT</version> <!-- first part should be equal to ${molgenis.version}!!! -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -47,6 +47,11 @@
   </issueManagement>
 
   <properties>
+    <!-- versioning -->
+    <version.release>${molgenis.version}-VIBE-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</version.release>
+    <version.development>${molgenis.version}-VIBE-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT</version.development>
+
+    <!-- molgenis version -->
     <molgenis.version>8.1.8</molgenis.version>
 
     <!-- authentication for release scm plugin -->
@@ -335,6 +340,52 @@
                 </sources>
               </configuration>
             </execution>
+            <!-- strips molgenis version from version string -->
+            <execution>
+              <id>strip-molgenis-version</id>
+              <goals>
+                <goal>regex-property</goal>
+              </goals>
+              <configuration>
+                <name>version.stripped</name>
+                <value>${project.version}</value>
+                <regex>${molgenis.version}-VIBE-</regex>
+                <replacement />
+                <failIfNoMatch>true</failIfNoMatch>
+              </configuration>
+            </execution>
+            <!-- parses stripped version string -->
+            <execution>
+              <id>parse-stripped-version</id>
+              <goals>
+                <goal>parse-version</goal>
+              </goals>
+              <configuration>
+                <versionString>${version.stripped}</versionString>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Generate properties file with versioning -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>versioning-file</id>
+              <phase>validate</phase>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <configuration>
+                <target>
+                  <propertyfile file="versioning.properties">
+                    <entry key="version.release" value="${version.release}" />
+                    <entry key="version.development" value="${version.development}" />
+                  </propertyfile>
+                </target>
+              </configuration>
+            </execution>
           </executions>
         </plugin>
         <plugin>
@@ -508,6 +559,8 @@
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <scmCommentPrefix>[ci skip] [maven-release-plugin]${line.separator}</scmCommentPrefix>
+            <releaseVersion>${version.release}</releaseVersion>
+            <developmentVersion>${version.development}</developmentVersion>
           </configuration>
         </plugin>
         <plugin>
@@ -592,12 +645,20 @@
         <artifactId>maven-resources-plugin</artifactId>
       </plugin>
       <plugin>
-        <!-- add minified resources to build path -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
+          <!-- add minified resources to build path -->
           <execution>
             <id>minify-build-helper</id>
+          </execution>
+          <!-- strips the version to remove the initial molgenis version -->
+          <execution>
+            <id>strip-molgenis-version</id>
+          </execution>
+          <!-- parses the stripped version -->
+          <execution>
+            <id>parse-stripped-version</id>
           </execution>
         </executions>
       </plugin>

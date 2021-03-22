@@ -121,6 +121,8 @@ pipeline {
                         }
                         container('maven') {
                             sh "mvn -q -B release:prepare -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -DskipITs -Dmaven.test.redirectTestOutputToFile=true\""
+                            // Generates a file with the versioning to be used.
+                            sh "mvn -N org.codehaus.mojo:build-helper-maven-plugin:regex-property@strip-molgenis-version org.codehaus.mojo:build-helper-maven-plugin:parse-stripped-version@parse-version org.apache.maven.plugins:maven-antrun-plugin:run@versioning-file"
                         }
                     }
                 }
@@ -128,7 +130,7 @@ pipeline {
                     steps {
                         container('maven') {
                             script {
-                                env.TAG = sh(script: "grep project.rel release.properties | head -n1 | cut -d'=' -f2", returnStdout: true).trim()
+                                env.TAG = sh(script: "grep version.release versioning.properties | cut -d'=' -f2", returnStdout: true).trim()
                             }
                             // deploy RPM
                             // need to run install phase first

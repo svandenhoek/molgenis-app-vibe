@@ -38,3 +38,5 @@ mvnw.cmd
 
 release.properties
 pom.xml.releaseBackup
+
+versioning.properties
