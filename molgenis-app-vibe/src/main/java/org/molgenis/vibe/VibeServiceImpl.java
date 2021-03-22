@@ -8,9 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.Set;
 import org.molgenis.data.DataService;
 import org.molgenis.data.file.FileStore;
@@ -18,12 +15,9 @@ import org.molgenis.data.file.model.FileMeta;
 import org.molgenis.data.file.model.FileMetaFactory;
 import org.molgenis.data.file.model.FileMetaMetadata;
 import org.molgenis.jobs.Progress;
-import org.molgenis.util.AppDataRootProvider;
-import org.molgenis.vibe.core.GeneDiseaseCollectionRetrievalRunner;
-import org.molgenis.vibe.core.formats.GeneDiseaseCollection;
+import org.molgenis.vibe.core.database_processing.GenesForPhenotypeRetriever;
 import org.molgenis.vibe.core.formats.Phenotype;
-import org.molgenis.vibe.core.io.input.ModelReaderFactory;
-import org.molgenis.vibe.core.io.input.VibeDatabase;
+import org.molgenis.vibe.core.io.input.ModelReader;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,10 +34,12 @@ class VibeServiceImpl implements VibeService {
 
   @Override
   public FileMeta retrieveGeneDiseaseCollection(
-      Set<Phenotype> phenotypes, String filename, Progress progress) throws IOException {
-    GeneDiseaseCollection collection =
-        new GeneDiseaseCollectionRetrievalRunner(retrieveDatabase(), phenotypes).call();
-    String collectionJson = VibeSerializer.serializeGeneDiseaseCollection(collection);
+      ModelReader reader, Set<Phenotype> phenotypes, String filename, Progress progress)
+      throws IOException {
+    GenesForPhenotypeRetriever retriever = new GenesForPhenotypeRetriever(reader, phenotypes);
+    retriever.run();
+    String collectionJson =
+        VibeSerializer.serializeGeneDiseaseCollection(retriever.getGeneDiseaseCollection());
 
     FileMeta fileMeta;
     try (InputStream inputStream =
@@ -55,21 +51,6 @@ class VibeServiceImpl implements VibeService {
     progress.increment(1);
     progress.status("Done.");
     return fileMeta;
-  }
-
-  private VibeDatabase retrieveDatabase() throws IOException {
-    InputStream propertiesStream =
-        getClass().getClassLoader().getResourceAsStream("molgenis-app-vibe.properties");
-    Properties properties = new Properties();
-    properties.load(propertiesStream);
-
-    Path databasePath =
-        Paths.get(
-            AppDataRootProvider.getAppDataRoot().toString(),
-            "data",
-            properties.getProperty("vibe-hdt.file"));
-
-    return new VibeDatabase(databasePath, ModelReaderFactory.HDT);
   }
 
   private FileMeta createFileMeta(File file) {
