@@ -36,7 +36,7 @@
           <license>Apache License 2.0</license>
           <group>Application/Collectors</group>
           <packager>MOLGENIS</packager>
-          <name>${artifactId}</name>
+          <name>${project.artifactId}</name>
           <prefix>/usr/local</prefix>
           <changelogFile>CHANGELOG.md</changelogFile>
           <version>${rpm.release.version}</version>
