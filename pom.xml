@@ -343,6 +343,7 @@
             <!-- strips molgenis version from version string -->
             <execution>
               <id>strip-molgenis-version</id>
+              <phase>initialize</phase>
               <goals>
                 <goal>regex-property</goal>
               </goals>
@@ -357,33 +358,12 @@
             <!-- parses stripped version string -->
             <execution>
               <id>parse-stripped-version</id>
+              <phase>initialize</phase>
               <goals>
                 <goal>parse-version</goal>
               </goals>
               <configuration>
                 <versionString>${version.stripped}</versionString>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <!-- Generate properties file with versioning -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>versioning-file</id>
-              <phase>validate</phase>
-              <goals>
-                <goal>run</goal>
-              </goals>
-              <configuration>
-                <target>
-                  <propertyfile file="versioning.properties">
-                    <entry key="version.release" value="${version.release}" />
-                    <entry key="version.development" value="${version.development}" />
-                  </propertyfile>
-                </target>
               </configuration>
             </execution>
           </executions>
