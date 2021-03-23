@@ -38,5 +38,5 @@ mvnw.cmd
 
 release.properties
 pom.xml.releaseBackup
-
-versioning.properties
+pom.xml.next
+pom.xml.tag
