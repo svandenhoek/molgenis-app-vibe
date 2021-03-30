@@ -81,12 +81,12 @@
           <tbody></tbody>
         </table>
 
-        <p id="errorText">Error occurred while processing request.</p>
-        <p id="resultText">
+        <p id="messageError">An error occurred while processing the request.</p>
+        <p id="messageDownload">
           Click <a id="resultAnchor">here</a> to download the result.
           <br /><b>IMPORTANT:</b> The "count" field (which is not used within the app) is currently unreliable!
         </p>
-        <p id="resultTextEmpty">No results found.</p>
+        <p id="messageNoHits">No results found.</p>
       </div>
     </div>
   </div>
@@ -116,18 +116,11 @@
     initializePubmedTable()
   }
 
-  // Sets CSS.
-  document.getElementById('previewTable').style.display = 'none';
-  document.getElementById('errorText').style.display = 'none';
-  document.getElementById('resultText').style.display = 'none';
-  document.getElementById('resultTextEmpty').style.display = 'none';
-  document.getElementById('progress').style.display = 'none';
 
   function handleCompletedVibeJob(jobExecution) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState != 4) return;
-      document.getElementById('executeButton').removeAttribute("disabled");
       if (this.status == 200) {
         // Replaces global parsedJson variable.
         parsedJson = JSON.parse(this.responseText);
@@ -140,20 +133,17 @@
         sortPreviewTable();
 
         // Layout changes.
-        document.getElementById('resultAnchor').setAttribute("href", jobExecution.resultUrl);
+        document.getElementById('progress').style.display = 'none';
+        document.getElementById('executeButton').removeAttribute('disabled');
+        document.getElementById('resultAnchor').setAttribute('href', jobExecution.resultUrl);
         document.getElementById('previewTable').style.display = 'table';
         if(parsedJson['combinations'].length > 0) {
-          document.getElementById('resultText').style.display = 'block';
+          document.getElementById('messageDownload').style.display = 'block';
         } else {
-          document.getElementById('resultTextEmpty').style.display = 'block';
+          document.getElementById('messageNoHits').style.display = 'block';
         }
-        document.getElementById('progress').style.display = 'none';
       } else {
-        document.getElementById('previewTable').style.display = 'none';
-        document.getElementById('errorText').style.display = 'block';
-        document.getElementById('resultText').style.display = 'none';
-        document.getElementById('resultTextEmpty').style.display = 'none';
-        document.getElementById('progress').style.display = 'none';
+        endJobWithError()
       }
     };
     xhr.open('GET', '/api/vibe?id=' + jobExecution.identifier, true);
@@ -352,26 +342,17 @@
             handleCompletedVibeJob(jobExecution)
           }
         } else {
-          document.getElementById('executeButton').removeAttribute("disabled");
-          document.getElementById('previewTable').style.display = 'none';
-          document.getElementById('errorText').style.display = 'block';
-          document.getElementById('resultText').style.display = 'none';
-          document.getElementById('resultTextEmpty').style.display = 'none';
-          document.getElementById('progress').style.display = 'none';
+          endJobWithError()
         }
       };
       xhr.open('GET', '/api/v2/sys_job_VibeJobExecution/' + jobExecutionId, true);
       xhr.send();
     }, 1000);
   }
+
   document.getElementById('vibe-form').addEventListener("submit", function(e) {
     e.preventDefault();
-    document.getElementById('executeButton').setAttribute("disabled", "disabled");
-    jQuery('#previewTable').hide();
-    jQuery('#previewTable > tbody').remove();
-
     var value = document.getElementById('inputPhenotypes').value;
-
     runVibe(value);
   });
 
@@ -386,8 +367,11 @@
   }
 
   function runVibe(value) {
-    document.getElementById('resultText').style.display = 'none';
-    document.getElementById('resultTextEmpty').style.display = 'none';
+    // Adjusts layout in preperation for running a job.
+    document.getElementById('executeButton').setAttribute('disabled', 'disabled');
+    document.querySelectorAll("[id^=message]").forEach(i => i.style.display = 'none');
+    document.getElementById('previewTable').style.display = 'none';
+    jQuery('#previewTable > tbody').remove();
     document.getElementById('progress').style.display = 'block';
 
     var xhr = new XMLHttpRequest();
@@ -396,14 +380,16 @@
       if (this.status == 200) {
         pollVibeJob(JSON.parse(this.responseText).identifier);
       } else {
-        document.getElementById('executeButton').removeAttribute("disabled");
-        document.getElementById('errorText').style.display = 'block';
-        document.getElementById('resultText').style.display = 'none';
-        document.getElementById('resultTextEmpty').style.display = 'none';
-        document.getElementById('progress').style.display = 'none';
+        endJobWithError()
       }
     };
     xhr.open('POST', '/api/vibe?p=' + value, true);
     xhr.send();
+  }
+
+  function endJobWithError() {
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('executeButton').removeAttribute('disabled');
+    document.getElementById('messageError').style.display = 'block';
   }
 </script>
