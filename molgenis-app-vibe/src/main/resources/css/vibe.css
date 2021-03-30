@@ -21,6 +21,9 @@ td.disgenetScore div {
     display: none;
     table-layout: fixed;
 }
+span.invalidItem {
+    color: red;
+}
 
 /* Datatables CSS */
 /*

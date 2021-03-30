@@ -81,6 +81,7 @@
           <tbody></tbody>
         </table>
 
+        <p id="messageInvalidInput">Invalid input:<br /><span id="invalidInputData" /></p>
         <p id="messageError">An error occurred while processing the request.</p>
         <p id="messageDownload">
           Click <a id="resultAnchor">here</a> to download the result.
@@ -367,13 +368,20 @@
   }
 
   function runVibe(value) {
-    // Adjusts layout in preperation for running a job.
-    document.getElementById('executeButton').setAttribute('disabled', 'disabled');
+    // Removes remnants of previous job.
     document.querySelectorAll("[id^=message]").forEach(i => i.style.display = 'none');
+    document.getElementById('invalidInputData').innerHTML = '';
     document.getElementById('previewTable').style.display = 'none';
     jQuery('#previewTable > tbody').remove();
+
+    // Show error message instead of continuing if input is invalid.
+    if (!validateInputPhenotypes(value)) return;
+
+    // Layout changes for running new job.
+    document.getElementById('executeButton').setAttribute('disabled', 'disabled');
     document.getElementById('progress').style.display = 'block';
 
+    // New job.
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState != 4) return;
@@ -385,6 +393,32 @@
     };
     xhr.open('POST', '/api/vibe?p=' + value, true);
     xhr.send();
+  }
+
+  function validateInputPhenotypes(phenotypes) {
+    const phenotypeRegex = /HP:\d{7}/;
+    var allInputValid = true;
+    var inputStringValidated = [];
+
+    phenotypes.split(',').forEach(function(phenotype) {
+      if(phenotype.length === 0) {
+        inputStringValidated.push('<span class="invalidItem">&lt;empty string&gt;</span>');
+        allInputValid = false;
+      } else if(!phenotypeRegex.test(phenotype)) {
+        inputStringValidated.push('<span class="invalidItem">' + phenotype + '</span>');
+        allInputValid = false;
+      } else {
+        inputStringValidated.push(phenotype);
+      }
+    });
+
+    // If any HPOs failed, updates & shows the invalid input message.
+    if(!allInputValid) {
+      document.getElementById('invalidInputData').innerHTML = inputStringValidated.join();
+      document.getElementById('messageInvalidInput').style.display = 'block';
+    }
+
+    return allInputValid;
   }
 
   function endJobWithError() {
