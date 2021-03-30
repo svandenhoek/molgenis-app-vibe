@@ -14,7 +14,7 @@ td.disgenetScore div {
 #progress, #errorText, #resultText {
     display: none;
 }
-#detailsViewSourceCounts, #detailsViewSourcesForPubmeds {
+#detailsViewSourcesForPubmeds {
     text-align: center;
 }
 #previewTable {
