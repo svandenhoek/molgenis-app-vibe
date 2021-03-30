@@ -396,11 +396,12 @@
   }
 
   function validateInputPhenotypes(phenotypes) {
-    const phenotypeRegex = /HP:\d{7}/;
+    const phenotypeRegex = /^HP:\d{7}$/;
     var allInputValid = true;
     var inputStringValidated = [];
 
     phenotypes.split(',').forEach(function(phenotype) {
+      phenotype = phenotype.trim();
       if(phenotype.length === 0) {
         inputStringValidated.push('<span class="invalidItem">&lt;empty string&gt;</span>');
         allInputValid = false;
