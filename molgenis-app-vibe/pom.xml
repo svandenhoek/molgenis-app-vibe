@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.molgenis</groupId>
     <artifactId>molgenis-vibe</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>8.1.8-VIBE-1.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>molgenis-app-vibe</artifactId>
   <packaging>war</packaging>
@@ -36,7 +36,7 @@
           <license>Apache License 2.0</license>
           <group>Application/Collectors</group>
           <packager>MOLGENIS</packager>
-          <name>${artifactId}</name>
+          <name>${project.artifactId}</name>
           <prefix>/usr/local</prefix>
           <changelogFile>CHANGELOG.md</changelogFile>
           <version>${rpm.release.version}</version>

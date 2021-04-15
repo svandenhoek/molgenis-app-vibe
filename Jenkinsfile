@@ -41,7 +41,7 @@ pipeline {
                     steps {
                         container('maven') {
                             script {
-                                env.PREVIEW_VERSION = sh(script: "grep version pom.xml | grep SNAPSHOT | cut -d'>' -f2 | cut -d'<' -f1", returnStdout: true).trim() + "-${env.TAG}"
+                                env.PREVIEW_VERSION = sh(script: "mvn -q help:evaluate -Dexpression=project.version -DforceStdout", returnStdout: true) + "-${env.TAG}"
                             }
                             sh "mvn -q -B versions:set -DnewVersion=${PREVIEW_VERSION} -DgenerateBackupPoms=false"
                             sh "mvn -q -B clean install -Dmaven.test.redirectTestOutputToFile=true -DskipITs -T4"
@@ -120,7 +120,7 @@ pipeline {
                             input(message: 'Prepare to release?')
                         }
                         container('maven') {
-                            sh "mvn -q -B release:prepare -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -DskipITs -Dmaven.test.redirectTestOutputToFile=true\""
+                            sh "mvn -q -B initialize release:prepare -DskipITs -Dmaven.test.redirectTestOutputToFile=true -Darguments=\"-B -DskipITs -Dmaven.test.redirectTestOutputToFile=true\""
                         }
                     }
                 }
