@@ -2,6 +2,7 @@ FROM molgenis/tomcat:tomcat-release-2019-03-28_15-25-46
 
 # MOLGENIS war-file
 ARG WAR_FILE
+ARG VIBE_DATA
 
 # Elasticsearch configuration
 ENV elasticsearch.cluster.name=molgenis
@@ -32,6 +33,11 @@ RUN rm -fr ${CATALINA_HOME}/webapps/*
 
 # Allow tomcat to read and exec files in webapps (sub)folder
 RUN chmod -R 2755 webapps ${CATALINA_HOME}/webapps
+
+# Copy vibe data from the download server into the home dir
+RUN mkdir -p /home/molgenis/data
+RUN curl -L ${VIBE_DATA} -o /home/molgenis/data/vibe.tar.gz
+RUN tar -xvzf /home/molgenis/data/vibe.tar.gz -C /home/molgenis/data/
 
 # Copy war-file to webapps
 COPY ${WAR_FILE} ${CATALINA_HOME}/webapps/ROOT.war
