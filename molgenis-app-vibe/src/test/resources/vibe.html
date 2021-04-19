@@ -2,8 +2,8 @@
   <div class="col-12">
     <div class="row justify-content-center">
       <div class="col-md-8">
-        <h1>VIBE v4.0</h1>
-        <p class="lead">Variant Interpretation using Biomedical literature Evidence (<a rel="noopener noreferrer" href="https://github.com/molgenis/vibe">GitHub</a> | <a rel="noopener noreferrer" href="http://dx.doi.org/10.1002/ggn2.10023">Paper</a> | <a rel="noopener noreferrer" href="https://github.com/molgenis/vibe/blob/4.0/database/LICENSES.md">Database</a>)</p>
+        <h1>VIBE v5.0</h1>
+        <p class="lead">Variant Interpretation using Biomedical literature Evidence (<a rel="noopener noreferrer" href="https://github.com/molgenis/vibe">GitHub</a> | <a rel="noopener noreferrer" href="http://dx.doi.org/10.1002/ggn2.10023">Paper</a> | <a rel="noopener noreferrer" href="https://github.com/molgenis/vibe/blob/5.0/database/LICENSES.md">Database</a>)</p>
         <div class="jumbotron">
           <form id="vibe-form">
             <div class="input-group mb-3">
@@ -81,12 +81,13 @@
           <tbody></tbody>
         </table>
 
-        <p id="errorText">Error occurred while processing request.</p>
-        <p id="resultText">
+        <p id="messageInvalidInput">Invalid input:<br /><span id="invalidInputData" /></p>
+        <p id="messageError">An error occurred while processing the request.</p>
+        <p id="messageDownload">
           Click <a id="resultAnchor">here</a> to download the result.
           <br /><b>IMPORTANT:</b> The "count" field (which is not used within the app) is currently unreliable!
         </p>
-        <p id="resultTextEmpty">No results found.</p>
+        <p id="messageNoHits">No results found.</p>
       </div>
     </div>
   </div>
@@ -116,18 +117,11 @@
     initializePubmedTable()
   }
 
-  // Sets CSS.
-  document.getElementById('previewTable').style.display = 'none';
-  document.getElementById('errorText').style.display = 'none';
-  document.getElementById('resultText').style.display = 'none';
-  document.getElementById('resultTextEmpty').style.display = 'none';
-  document.getElementById('progress').style.display = 'none';
 
   function handleCompletedVibeJob(jobExecution) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState != 4) return;
-      document.getElementById('executeButton').removeAttribute("disabled");
       if (this.status == 200) {
         // Replaces global parsedJson variable.
         parsedJson = JSON.parse(this.responseText);
@@ -140,20 +134,17 @@
         sortPreviewTable();
 
         // Layout changes.
-        document.getElementById('resultAnchor').setAttribute("href", jobExecution.resultUrl);
+        document.getElementById('progress').style.display = 'none';
+        document.getElementById('executeButton').removeAttribute('disabled');
+        document.getElementById('resultAnchor').setAttribute('href', jobExecution.resultUrl);
         document.getElementById('previewTable').style.display = 'table';
         if(parsedJson['combinations'].length > 0) {
-          document.getElementById('resultText').style.display = 'block';
+          document.getElementById('messageDownload').style.display = 'block';
         } else {
-          document.getElementById('resultTextEmpty').style.display = 'block';
+          document.getElementById('messageNoHits').style.display = 'block';
         }
-        document.getElementById('progress').style.display = 'none';
       } else {
-        document.getElementById('previewTable').style.display = 'none';
-        document.getElementById('errorText').style.display = 'block';
-        document.getElementById('resultText').style.display = 'none';
-        document.getElementById('resultTextEmpty').style.display = 'none';
-        document.getElementById('progress').style.display = 'none';
+        endJobWithError()
       }
     };
     xhr.open('GET', '/api/vibe?id=' + jobExecution.identifier, true);
@@ -352,26 +343,17 @@
             handleCompletedVibeJob(jobExecution)
           }
         } else {
-          document.getElementById('executeButton').removeAttribute("disabled");
-          document.getElementById('previewTable').style.display = 'none';
-          document.getElementById('errorText').style.display = 'block';
-          document.getElementById('resultText').style.display = 'none';
-          document.getElementById('resultTextEmpty').style.display = 'none';
-          document.getElementById('progress').style.display = 'none';
+          endJobWithError()
         }
       };
       xhr.open('GET', '/api/v2/sys_job_VibeJobExecution/' + jobExecutionId, true);
       xhr.send();
     }, 1000);
   }
+
   document.getElementById('vibe-form').addEventListener("submit", function(e) {
     e.preventDefault();
-    document.getElementById('executeButton').setAttribute("disabled", "disabled");
-    jQuery('#previewTable').hide();
-    jQuery('#previewTable > tbody').remove();
-
     var value = document.getElementById('inputPhenotypes').value;
-
     runVibe(value);
   });
 
@@ -386,24 +368,63 @@
   }
 
   function runVibe(value) {
-    document.getElementById('resultText').style.display = 'none';
-    document.getElementById('resultTextEmpty').style.display = 'none';
+    // Removes remnants of previous job.
+    document.querySelectorAll("[id^=message]").forEach(i => i.style.display = 'none');
+    document.getElementById('invalidInputData').innerHTML = '';
+    document.getElementById('previewTable').style.display = 'none';
+    jQuery('#previewTable > tbody').remove();
+
+    // Show error message instead of continuing if input is invalid.
+    if (!validateInputPhenotypes(value)) return;
+
+    // Layout changes for running new job.
+    document.getElementById('executeButton').setAttribute('disabled', 'disabled');
     document.getElementById('progress').style.display = 'block';
 
+    // New job.
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (this.readyState != 4) return;
       if (this.status == 200) {
         pollVibeJob(JSON.parse(this.responseText).identifier);
       } else {
-        document.getElementById('executeButton').removeAttribute("disabled");
-        document.getElementById('errorText').style.display = 'block';
-        document.getElementById('resultText').style.display = 'none';
-        document.getElementById('resultTextEmpty').style.display = 'none';
-        document.getElementById('progress').style.display = 'none';
+        endJobWithError()
       }
     };
     xhr.open('POST', '/api/vibe?p=' + value, true);
     xhr.send();
+  }
+
+  function validateInputPhenotypes(phenotypes) {
+    const phenotypeRegex = /^HP:\d{7}$/;
+    var allInputValid = true;
+    var inputStringValidated = [];
+
+    phenotypes.split(',').forEach(function(phenotype) {
+      phenotype = phenotype.trim();
+      if(phenotype.length === 0) {
+        inputStringValidated.push('<span class="invalidItem">&lt;empty string&gt;</span>');
+        allInputValid = false;
+      } else if(!phenotypeRegex.test(phenotype)) {
+        inputStringValidated.push('<span class="invalidItem">' + phenotype + '</span>');
+        allInputValid = false;
+      } else {
+        inputStringValidated.push(phenotype);
+      }
+    });
+
+    // If any HPOs failed, updates & shows the invalid input message.
+    if(!allInputValid) {
+      document.getElementById('invalidInputData').innerHTML = inputStringValidated.join();
+      document.getElementById('messageInvalidInput').style.display = 'block';
+    }
+
+    return allInputValid;
+  }
+
+  function endJobWithError() {
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('executeButton').removeAttribute('disabled');
+    document.getElementById('messageError').style.display = 'block';
   }
 </script>

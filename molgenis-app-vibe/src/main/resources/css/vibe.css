@@ -11,15 +11,18 @@ td.disgenetScore div {
     padding:.375rem .75rem !important; /* same as button */
     margin:1px; /* Adjustment for the 1px border of button */
 }
-#progress, #errorText, #resultText {
+#progress, [id^=message] {
     display: none;
 }
-#detailsViewSourceCounts, #detailsViewSourcesForPubmeds {
+#detailsViewSourcesForPubmeds {
     text-align: center;
 }
 #previewTable {
     display: none;
     table-layout: fixed;
+}
+span.invalidItem {
+    color: red;
 }
 
 /* Datatables CSS */
