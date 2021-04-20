@@ -8,33 +8,24 @@ genome diagnostics to prioritize genes by matching patient symptoms to literatur
 ### Create local test environment
 
 1. Set the memory in your docker resources to 4GB.
-
 2. Open the terminal and go to the `molgenis-app-vibe/molgenis-app-vibe` folder.
-
 3. Run:
-
     ```bash
     mvn clean install
     ```
-
 4. Run: 
    ```shell
    docker-compose up --force-recreate --build
    ```
-
 5. Start a fresh incognito session/clear browser cache.
-
 6. Go to http://localhost:8081/
-
 7. Sign in as superuser (default: `admin` with password `admin`).
-
 8. Update homepage:
     1. Navigate to the data explorer.
     2. Select 'Static content' in the entity type dropdown.
     3. Edit the row with id 'home'.
     4. Copy the content of [this file](./molgenis-app-vibe/src/test/resources/vibe.html) into the Content field.
     5. Click on the save button.
-
 9. Update settings:
     1. Navigate to the data explorer.
     2. Select 'Application Settings' in the entity type dropdown.
