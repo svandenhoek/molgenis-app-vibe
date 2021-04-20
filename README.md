@@ -46,7 +46,7 @@ genome diagnostics to prioritize genes by matching patient symptoms to literatur
 
 After changes were made to the code, be sure to start from step 3.
 
-If the layout is missing on certain pages, stop the Docker application, run `docker image prune` and start from step 4.
+If the layout is missing on certain pages, stop the Docker application, run `docker system prune` and start from step 4.
 
 ### Build new version for deployment.
 
