@@ -6,11 +6,14 @@ labels: bug
 assignees: ''
 ---
 
-### Desktop (please complete the following information)
+### General information
+Please fill in the following (depending on the used platform):
+
+##### Desktop
 - OS + version: [e.g. macOS 10.15.7]
 - Browser + version: [e.g. Firefox 89.0.2]
 
-### Smartphone (please complete the following information):
+##### Smartphone
 - Device: [e.g. iPhone 12]
 - OS + version: [e.g. iOS 14.6]
 - Browser + version: [e.g. Firefox 34.2]
